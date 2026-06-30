@@ -59,7 +59,7 @@
             <cfset var notifier = new services.ErrorNotifier()>
             <cfset notifier.notify(arguments.exception, "Application.cfc onError - event: " & arguments.eventName, CGI.SCRIPT_NAME)>
         <cfcatch>
-            <!--- ErrorNotifier itself failed — last-resort cflog, wrapped so it can't propagate --->
+            <!--- ErrorNotifier itself failed - last-resort cflog, wrapped so it can't propagate --->
             <cftry>
                 <cflog file="digitalweddings_errors" type="error"
                        text="[ON ERROR] ErrorNotifier failed. PAGE=#CGI.SCRIPT_NAME# ERR=#arguments.exception.message# NOTIFIER_ERR=#cfcatch.message#">

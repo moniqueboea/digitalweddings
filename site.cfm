@@ -44,7 +44,7 @@ a{color:#B8860B}
 </head>
 <body>
 <div>
-  <p style="font-size:3rem;margin-bottom:16px">&#128141;</p>
+  <p style="font-size:3rem;margin-bottom:16px">&##128141;</p>
   <h1>Wedding Site Not Found</h1>
   <p>This wedding site doesn&rsquo;t exist or hasn&rsquo;t been published yet.</p>
   <a href="/index.cfm">Return Home</a>
@@ -58,7 +58,7 @@ a{color:#B8860B}
 <cfset tplId = lCase(trim(qSite.template))>
 <cfinclude template="includes/template-list.cfm">
 <cfif !listFind(application.templates, tplId)>
-    <cfset tplId = "classic_gold">
+    <cfset tplId = listFirst(application.templates)>
 </cfif>
 
 <!--- Look up registry link for this site's owner --->

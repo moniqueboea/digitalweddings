@@ -292,16 +292,19 @@
     </div>
 
     <!--- ── Preview bar ── --->
-    <div id="previewBar" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 24px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:16px">
-        <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:20px">&#128233;</span>
-            <span style="font-size:14px;color:var(--text-muted)">This email will be sent to</span>
-            <span id="previewCount" style="font-size:18px;font-weight:700;color:var(--text)"><cfoutput>#countAll#</cfoutput></span>
-            <span id="previewLabel" style="font-size:14px;color:var(--text-muted)">guest<cfoutput>#countAll NEQ 1 ? 's' : ''#</cfoutput></span>
+    <div id="previewBar" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 24px;margin-bottom:28px">
+        <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:22px;flex-shrink:0">&#128233;</span>
+            <div>
+                <p style="margin:0;font-size:14px;color:var(--text-muted)">This email will be sent to</p>
+                <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:var(--text)">
+                    <span id="previewCount"><cfoutput>#countAll#</cfoutput></span>
+                    <span id="previewLabel">guest<cfoutput>#countAll NEQ 1 ? 's' : ''#</cfoutput></span>
+                    &mdash;
+                    <cfoutput><span style="color:var(--gold)">#HTMLEditFormat(qSite.couple_name_1)# &amp; #HTMLEditFormat(qSite.couple_name_2)#</span></cfoutput>
+                </p>
+            </div>
         </div>
-        <cfoutput>
-        <span style="font-size:13px;color:var(--gold);font-weight:600">#HTMLEditFormat(qSite.couple_name_1)# &amp; #HTMLEditFormat(qSite.couple_name_2)#</span>
-        </cfoutput>
     </div>
 
     <!--- ── Buttons ── --->

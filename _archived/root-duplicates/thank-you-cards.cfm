@@ -126,7 +126,7 @@
     </div>
     <cfelse>
         <div class="empty-state">
-            <div style="font-size:48px;margin-bottom:16px">&#128140;</div>
+            <div style="font-size:48px;margin-bottom:16px">&##128140;</div>
             <p>No thank you cards yet. Add recipients above to get started.</p>
         </div>
     </cfif>

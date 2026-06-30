@@ -1,11 +1,11 @@
 <cfinclude template="../includes/auth-check.cfm">
-<cfparam name="url.template" default="classic_gold">
+<cfparam name="url.template" default="">
 <cfparam name="url.siteId" default="0">
 <cfparam name="url.preview" default="0">
 <cfset tplId = lCase(reReplace(trim(url.template),"[^a-z_]","","all"))>
 
 <cfinclude template="../includes/template-list.cfm">
-<cfif !listFind(application.templates, tplId)><cfset tplId = "classic_gold"></cfif>
+<cfif !listFind(application.templates, tplId)><cfset tplId = listFirst(application.templates)></cfif>
 
 <!--- Sample site data struct --->
 <cfset site = {
@@ -14,11 +14,11 @@
     wedding_date:       "2025-09-20",
     venue_name:         "The Grand Ballroom",
     venue_address:      "Atlanta, Georgia",
-    story:              "We met at a rooftop gallery opening on a warm summer evening. Marcus was the one who caught my eye across the room — and the rest, as they say, is history. After three years of adventures, stolen moments, and too many late-night conversations to count, we're finally making it official.",
-    dress_code:         "Black Tie Optional. We encourage our guests to celebrate in their finest attire — feel free to incorporate cultural dress and rich jewel tones.",
+    story:              "We met at a rooftop gallery opening on a warm summer evening. Marcus was the one who caught my eye across the room - and the rest, as they say, is history. After three years of adventures, stolen moments, and too many late-night conversations to count, we're finally making it official.",
+    dress_code:         "Black Tie Optional. We encourage our guests to celebrate in their finest attire - feel free to incorporate cultural dress and rich jewel tones.",
     travel_info:        "For out-of-town guests, we recommend the Grand Hyatt Atlanta (just 5 minutes from the venue). Hartsfield-Jackson Airport is 25 minutes away.",
     things_to_do:       "Atlanta has so much to offer! Visit the National Center for Civil and Human Rights, explore Ponce City Market, or take a stroll through Piedmont Park.",
-    scripture:          "Two are better than one, because they have a good return for their labor. — Ecclesiastes 4:9",
+    scripture:          "Two are better than one, because they have a good return for their labor. - Ecclesiastes 4:9",
     hero_image_url:     "",
     couple_photo_url:   "/assets/couple-placeholder.jpg",
     slug:               "preview",

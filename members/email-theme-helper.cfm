@@ -188,7 +188,7 @@
         fontStack:    "'Helvetica Neue',Arial,sans-serif",
         headingFont:  "'Helvetica Neue',Arial,sans-serif",
         headingWeight:"700",
-        eyebrow:      "Love is Love — You Are Invited",
+        eyebrow:      "Love is Love - You Are Invited",
         themeImage:   "violet-floral-top.jpg",
         themeImageBottom:"violet-floral-bottom.jpg"
     }>
@@ -209,7 +209,7 @@
         fontStack:    "Georgia,serif",
         headingFont:  "Georgia,serif",
         headingWeight:"700",
-        eyebrow:      "Bismillah — You Are Invited",
+        eyebrow:      "Bismillah - You Are Invited",
         themeImage:   "garden-romance.jpg",
         themeImageBottom:""
     }>

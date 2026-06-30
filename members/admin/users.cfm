@@ -172,7 +172,7 @@
         <div class="field">
             <label>Role</label>
             <select name="role" id="editRole">
-                <option value="">— none —</option>
+                <option value="">- none -</option>
                 <option value="user">user</option>
                 <option value="vendor">vendor</option>
                 <option value="admin">admin</option>

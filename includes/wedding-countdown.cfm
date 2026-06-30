@@ -1,110 +1,72 @@
 <!---
   includes/wedding-countdown.cfm
-  Reusable wedding countdown hero block.
+  Compact countdown card styled to match the site's card/gold aesthetic.
 
   Required variables (set before including):
-    cdDays        — integer: days until wedding (negative = past)
-    cdName1       — string: partner 1 name (HTMLEditFormat already applied)
-    cdName2       — string: partner 2 name (HTMLEditFormat already applied)
-    cdDate        — string: formatted wedding date, e.g. "September 5, 2027" — or ""
-    cdLocation    — string: venue name + address — or ""
-    cdHasDate     — boolean: true if wedding date is set
-    cdBg          — CSS color for section background
-    cdText        — CSS color for text
-    cdAccent      — CSS color for the big number and accents
-    cdHeadingFont — CSS font-family for headings
+    cdDays        - integer: days until wedding (negative = past)
+    cdName1       - string: partner 1 name (HTMLEditFormat already applied)
+    cdName2       - string: partner 2 name (HTMLEditFormat already applied)
+    cdDate        - string: formatted wedding date, e.g. "September 5, 2027" - or ""
+    cdLocation    - string: venue name + address - or ""
+    cdHasDate     - boolean: true if wedding date is set
+    cdBg          - (unused in compact style)
+    cdText        - (unused in compact style)
+    cdAccent      - (unused in compact style)
+    cdHeadingFont - (unused in compact style)
 --->
 <cfoutput>
-<div style="background:#cdBg#;padding:52px 20px;text-align:center;border-radius:12px;margin-bottom:40px;position:relative;overflow:hidden">
-
-    <!--- Decorative rings --->
-    <div style="position:absolute;top:-60px;left:-60px;width:200px;height:200px;border-radius:50%;border:1px solid #cdAccent#;opacity:0.12"></div>
-    <div style="position:absolute;bottom:-40px;right:-40px;width:150px;height:150px;border-radius:50%;border:1px solid #cdAccent#;opacity:0.10"></div>
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px 32px;margin-bottom:32px;display:flex;align-items:center;gap:32px;flex-wrap:wrap">
 
     <cfif !cdHasDate>
-        <!--- No date set --->
-        <div style="font-size:48px;margin-bottom:12px">&#128197;</div>
-        <p style="color:#cdText#;font-family:#cdHeadingFont#;font-size:22px;font-weight:600;margin:0 0 10px;opacity:0.9">
-            Your Wedding Countdown Awaits
-        </p>
-        <p style="color:#cdText#;font-size:15px;margin:0 0 24px;opacity:0.65;max-width:420px;margin-left:auto;margin-right:auto;line-height:1.7">
-            Add your wedding date to see your personalized countdown.
-        </p>
-        <a href="/members/wedding-sites.cfm" style="display:inline-block;padding:13px 36px;background:#cdAccent#;color:#fff;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;border-radius:4px">
-            Add Your Wedding Date
-        </a>
+        <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0">
+            <div style="width:44px;height:44px;background:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div>
+                <div style="font-family:var(--font-heading);font-size:16px;font-weight:600;color:var(--text);margin-bottom:3px">Add Your Wedding Date</div>
+                <div style="font-size:13px;color:var(--text-muted)">Set your date to see a personalized countdown</div>
+            </div>
+        </div>
+        <a href="/members/wedding-sites.cfm" class="btn btn-outline btn-sm" style="flex-shrink:0">Set Date &rarr;</a>
 
     <cfelseif cdDays EQ 0>
-        <!--- Wedding day --->
-        <div style="font-size:52px;margin-bottom:8px">&#10084;&#65039;</div>
-        <p style="color:#cdAccent#;font-family:#cdHeadingFont#;font-size:42px;font-weight:700;margin:0 0 8px;line-height:1.1">
-            Today Is Your Wedding Day!
-        </p>
-        <p style="color:#cdText#;font-size:19px;margin:0;opacity:0.8;font-family:#cdHeadingFont#">
-            Congratulations, #cdName1# &amp; #cdName2#! &#127881;
-        </p>
+        <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0">
+            <div style="width:44px;height:44px;background:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div>
+                <div style="font-family:var(--font-heading);font-size:16px;font-weight:600;color:var(--gold);margin-bottom:3px">Today Is Your Wedding Day!</div>
+                <div style="font-size:13px;color:var(--text-muted)">Congratulations, #cdName1# &amp; #cdName2#!</div>
+            </div>
+        </div>
 
     <cfelseif cdDays LT 0>
-        <!--- Wedding has passed --->
-        <div style="font-size:48px;margin-bottom:12px">&#127881;</div>
-        <p style="color:#cdAccent#;font-family:#cdHeadingFont#;font-size:34px;font-weight:700;margin:0 0 8px;line-height:1.1">
-            Congratulations on Your Wedding!
-        </p>
-        <p style="color:#cdText#;font-size:17px;margin:0;opacity:0.75;font-family:#cdHeadingFont#">
-            #cdName1# &amp; #cdName2# — wishing you a lifetime of love.
-        </p>
-
-    <cfelseif cdDays LTE 30>
-        <!--- Under 30 days --->
-        <p style="color:#cdAccent#;font-size:11px;letter-spacing:6px;text-transform:uppercase;margin:0 0 8px;opacity:0.9;font-family:Arial,sans-serif">
-            &#127881; Almost Time!
-        </p>
-        <div style="font-family:#cdHeadingFont#;font-size:108px;font-weight:700;color:#cdAccent#;line-height:1;margin:0 0 4px">
-            #cdDays#
+        <div style="display:flex;align-items:center;gap:16px;flex:1;min-width:0">
+            <div style="width:44px;height:44px;background:var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div>
+                <div style="font-family:var(--font-heading);font-size:16px;font-weight:600;color:var(--text);margin-bottom:3px">Congratulations on Your Wedding!</div>
+                <div style="font-size:13px;color:var(--text-muted)">#cdName1# &amp; #cdName2##len(cdDate) ? " &mdash; " & cdDate : ""#</div>
+            </div>
         </div>
-        <p style="color:#cdText#;font-family:#cdHeadingFont#;font-size:26px;font-weight:400;margin:0 0 6px;opacity:0.9">
-            #cdDays EQ 1 ? "Day" : "Days"# Until &ldquo;I Do!&rdquo;
-        </p>
-        <p style="color:#cdText#;font-size:16px;margin:0 0 28px;opacity:0.65;letter-spacing:1px;font-family:Arial,sans-serif">
-            #cdName1# &amp; #cdName2#
-        </p>
-
-        <cfif len(cdDate) OR len(cdLocation)>
-        <div style="display:inline-block;border-top:1px solid #cdAccent#;border-bottom:1px solid #cdAccent#;padding:14px 36px;opacity:0.85">
-            <cfif len(cdDate)>
-            <p style="color:#cdText#;font-size:17px;font-weight:600;margin:0 0 4px;font-family:#cdHeadingFont#">#cdDate#</p>
-            </cfif>
-            <cfif len(cdLocation)>
-            <p style="color:#cdText#;font-size:14px;margin:0;opacity:0.75;font-family:Arial,sans-serif">#cdLocation#</p>
-            </cfif>
-        </div>
-        </cfif>
 
     <cfelse>
-        <!--- 31+ days away --->
-        <p style="color:#cdAccent#;font-size:11px;letter-spacing:6px;text-transform:uppercase;margin:0 0 8px;opacity:0.9;font-family:Arial,sans-serif">
-            &#128141; The Big Day
-        </p>
-        <div style="font-family:#cdHeadingFont#;font-size:108px;font-weight:700;color:#cdAccent#;line-height:1;margin:0 0 4px">
-            #cdDays#
+        <!--- Active countdown --->
+        <div style="text-align:center;flex-shrink:0;min-width:80px">
+            <div style="font-family:var(--font-display);font-size:52px;font-weight:700;color:var(--gold);line-height:1">#cdDays#</div>
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-top:2px">#cdDays EQ 1 ? "Day" : "Days"# to go</div>
         </div>
-        <p style="color:#cdText#;font-family:#cdHeadingFont#;font-size:26px;font-weight:400;margin:0 0 6px;opacity:0.9">
-            #cdDays EQ 1 ? "Day" : "Days"# Until &ldquo;I Do!&rdquo;
-        </p>
-        <p style="color:#cdText#;font-size:16px;margin:0 0 28px;opacity:0.65;letter-spacing:1px;font-family:Arial,sans-serif">
-            #cdName1# &amp; #cdName2#
-        </p>
 
-        <cfif len(cdDate) OR len(cdLocation)>
-        <div style="display:inline-block;border-top:1px solid #cdAccent#;border-bottom:1px solid #cdAccent#;padding:14px 36px;opacity:0.85">
-            <cfif len(cdDate)>
-            <p style="color:#cdText#;font-size:17px;font-weight:600;margin:0 0 4px;font-family:#cdHeadingFont#">#cdDate#</p>
-            </cfif>
-            <cfif len(cdLocation)>
-            <p style="color:#cdText#;font-size:14px;margin:0;opacity:0.75;font-family:Arial,sans-serif">#cdLocation#</p>
-            </cfif>
+        <div style="width:1px;height:52px;background:var(--border);flex-shrink:0"></div>
+
+        <div style="flex:1;min-width:0">
+            <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Wedding Countdown</div>
+            <div style="font-family:var(--font-heading);font-size:17px;font-weight:600;color:var(--text);margin-bottom:4px">#cdName1# &amp; #cdName2#</div>
+            <div style="font-size:13px;color:var(--text-muted)">
+                #len(cdDate) ? cdDate : ""##len(cdDate) && len(cdLocation) ? " &nbsp;&middot;&nbsp; " : ""##len(cdLocation) ? cdLocation : ""#
+            </div>
         </div>
-        </cfif>
     </cfif>
 
 </div>

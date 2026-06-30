@@ -1,5 +1,5 @@
 <!---
-  sage_wreath.cfm — eucalyptus wreath hero, sage + gold + white
+  sage_wreath.cfm - eucalyptus wreath hero, sage + gold + white
   Palette: white #FAFAF7, sage #7A9B82, sage-light #E8EFE9, gold #B8922A, charcoal #2C3028, muted rgba(44,48,40,.42)
 --->
 <cfset weddingDateFull = "">
@@ -12,6 +12,18 @@
   <cfset weddingDayMonth = dateFormat(_d,"mmmm d")>
   <cfset weddingYear     = dateFormat(_d,"yyyy")>
 <cfcatch><cfset weddingDateFull = site.wedding_date></cfcatch>
+</cftry>
+</cfif>
+
+<!--- Countdown: days until wedding --->
+<cfset cdDaysUntil = 0>
+<cfset cdIsFuture = false>
+<cfif len(trim(site.wedding_date))>
+<cftry>
+  <cfset _wdToday = createDate(year(now()),month(now()),day(now()))>
+  <cfset cdDaysUntil = dateDiff("d", _wdToday, parseDateTime(site.wedding_date))>
+  <cfset cdIsFuture = (cdDaysUntil GT 0)>
+<cfcatch><cfset cdDaysUntil = 0></cfcatch>
 </cftry>
 </cfif>
 
@@ -53,7 +65,7 @@ nav a:hover,nav a.active{color:var(--sage);border-bottom-color:var(--gold)}
 .sticky-nav a{color:var(--muted);text-decoration:none;font-size:.88rem;letter-spacing:.14em;text-transform:uppercase;display:inline-block;padding:16px 16px;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;font-family:'Jost',sans-serif}
 .sticky-nav a:hover,.sticky-nav a.active{color:var(--sage);border-bottom-color:var(--gold)}
 
-/* ===== HERO — wreath frame ===== */
+/* ===== HERO - wreath frame ===== */
 .hero{background:var(--white);text-align:center;padding:48px 24px 64px}
 
 /* Wreath container: image behind, text centered on top */
@@ -176,6 +188,25 @@ footer .credit{font-size:1.1rem;font-weight:500;font-weight:500;color:rgba(44,48
   <cfif len(trim(site.travel_info)) OR (structKeyExists(site,"travel_links_json") AND len(trim(site.travel_links_json)))><a href="#travel">Travel</a></cfif>
   <cfif len(trim(site.things_to_do)) OR arrayLen(thingsLinks)><a href="#things_to_do">Things to Do</a></cfif>
 </nav>
+
+<cfoutput>
+<cfif cdIsFuture>
+<div style="text-align:center;padding:18px 24px;border-bottom:1px solid rgba(0,0,0,0.1);font-family:'Jost',sans-serif">
+  <span style="font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:##7A9B82">Countdown</span>
+  <div style="margin:6px 0;display:flex;align-items:baseline;justify-content:center;gap:8px">
+    <span style="font-size:2.4rem;font-weight:700;color:##7A9B82;line-height:1">#cdDaysUntil#</span>
+    <span style="font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(30,20,10,0.75);opacity:.7">#cdDaysUntil EQ 1 ? 'day' : 'days'# to go</span>
+  </div>
+  <cfif len(weddingDateFull)><span style="font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(30,20,10,0.75);opacity:.5">#weddingDateFull#</span></cfif>
+</div>
+</cfif>
+<cfif cdDaysUntil EQ 0 AND len(trim(site.wedding_date))>
+<div style="text-align:center;padding:16px 24px;border-bottom:1px solid rgba(0,0,0,0.1);font-family:'Jost',sans-serif">
+  <span style="font-size:.68rem;letter-spacing:.35em;text-transform:uppercase;color:##7A9B82">Today Is The Day</span>
+</div>
+</cfif>
+</cfoutput>
+
 
 <!--- STICKY NAV --->
 <nav class="sticky-nav" id="stickyNav">
@@ -412,7 +443,7 @@ window.addEventListener('scroll',function(){
 </script>
 
 <!-- Back to top button -->
-<button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="backToTop" aria-label="Back to top" style="display:none;position:fixed;bottom:28px;right:28px;z-index:9000;width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(0,0,0,0.55);color:#fff;font-size:20px;line-height:44px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.25);transition:opacity .2s,background .2s" onmouseover="this.style.background='rgba(0,0,0,0.75)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">&#8679;</button>
+<button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="backToTop" aria-label="Back to top" style="display:none;position:fixed;bottom:28px;right:28px;z-index:9000;width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(0,0,0,0.55);color:#fff;font-size:20px;line-height:44px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.25);transition:opacity .2s,background .2s" onmouseover="this.style.background='rgba(0,0,0,0.75)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">&uarr;</button>
 <script>
 (function(){
   var btn=document.getElementById('backToTop');

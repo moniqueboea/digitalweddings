@@ -338,7 +338,7 @@
         <p class="panel-title">Add a Guest</p>
         <form method="post" action="/members/guests.cfm">
             <input type="hidden" name="action" value="add_guest">
-            <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap">
+            <div class="add-guest-row1" style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap">
                 <div class="field" style="margin-bottom:0">
                     <label>Full Name *</label>
                     <input type="text" name="name" required placeholder="e.g. Aisha Johnson">
@@ -369,7 +369,7 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Add</button>
             </div>
-            <div style="display:grid;grid-template-columns:auto 2fr 3fr;gap:12px;align-items:center;margin-top:12px">
+            <div class="add-guest-row2" style="display:grid;grid-template-columns:auto 2fr 3fr;gap:12px;align-items:center;margin-top:12px">
                 <div class="field" style="margin-bottom:0;display:flex;align-items:center;gap:8px">
                     <input type="checkbox" name="plusOne" id="plusOneCheck" value="on" onchange="document.getElementById('plusOneNameWrap').style.display=this.checked?'block':'none'" style="width:16px;height:16px;cursor:pointer">
                     <label for="plusOneCheck" style="margin-bottom:0;cursor:pointer">Allow Plus One</label>
@@ -430,24 +430,25 @@
                 <span style="font-size:13px;color:var(--text-muted);font-weight:600">#arrayLen(sec.rows)# guest#arrayLen(sec.rows) NEQ 1 ? 's' : ''#</span>
             </div>
 
+            <!--- Desktop table --->
+            <div class="guest-desktop-table">
             <div class="table-wrap">
             <table>
                 <thead>
-                    <tr><th style="width:36px;text-align:center">##</th><th>Name</th><th class="hide-mobile">Email</th><th class="hide-mobile">Group</th><th class="hide-mobile">Dietary</th><th>RSVP</th><th class="hide-mobile">Table</th><th></th></tr>
+                    <tr><th style="width:36px;text-align:center">##</th><th>Name</th><th>Email</th><th>Group</th><th>Dietary</th><th>RSVP</th><th>Table</th><th></th></tr>
                 </thead>
                 <tbody>
                 <cfloop array="#sec.rows#" index="rowNum">
-                    <cfset r = guests><!--- access query row by index --->
-                    <cfset guestId_           = guests["guest_id"][rowNum]>
-                    <cfset name_              = guests["name"][rowNum]>
-                    <cfset email_             = guests["email"][rowNum]>
-                    <cfset guest_group_       = guests["guest_group"][rowNum]>
-                    <cfset dietary_           = guests["dietary_restrictions"][rowNum]>
-                    <cfset rsvp_status_       = guests["rsvp_status"][rowNum]>
-                    <cfset plus_one_          = guests["plus_one"][rowNum]>
-                    <cfset plus_one_name_     = guests["plus_one_name"][rowNum]>
-                    <cfset table_number_      = guests["table_number"][rowNum]>
-                    <cfset rowIndex           = arrayFind(sec.rows, rowNum)>
+                    <cfset guestId_       = guests["guest_id"][rowNum]>
+                    <cfset name_          = guests["name"][rowNum]>
+                    <cfset email_         = guests["email"][rowNum]>
+                    <cfset guest_group_   = guests["guest_group"][rowNum]>
+                    <cfset dietary_       = guests["dietary_restrictions"][rowNum]>
+                    <cfset rsvp_status_   = guests["rsvp_status"][rowNum]>
+                    <cfset plus_one_      = guests["plus_one"][rowNum]>
+                    <cfset plus_one_name_ = guests["plus_one_name"][rowNum]>
+                    <cfset table_number_  = guests["table_number"][rowNum]>
+                    <cfset rowIndex       = arrayFind(sec.rows, rowNum)>
                     <tr>
                         <td style="text-align:center;color:var(--text-muted);font-size:12px;font-weight:600">#rowIndex#</td>
                         <td>
@@ -457,13 +458,13 @@
                                 <form method="post" action="/members/guests.cfm" style="display:inline;margin-left:4px">
                                     <input type="hidden" name="action" value="remove_plus_one">
                                     <input type="hidden" name="guestId" value="#guestId_#">
-                                    <button type="submit" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px" onclick="return confirm('Remove plus one for #JSStringFormat(name_)#?')" title="Remove plus one">&##10005; Plus One</button>
+                                    <button type="submit" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px" onclick="return confirm('Remove plus one for #JSStringFormat(name_)#?')">&##10005; Plus One</button>
                                 </form>
                             </cfif>
                         </td>
-                        <td class="hide-mobile"><cfif len(email_)><a href="mailto:#HTMLEditFormat(email_)#">#HTMLEditFormat(email_)#</a></cfif></td>
-                        <td class="hide-mobile">#HTMLEditFormat(guest_group_)#</td>
-                        <td class="hide-mobile">#HTMLEditFormat(dietary_)#</td>
+                        <td><cfif len(email_)><a href="mailto:#HTMLEditFormat(email_)#">#HTMLEditFormat(email_)#</a></cfif></td>
+                        <td>#HTMLEditFormat(guest_group_)#</td>
+                        <td>#HTMLEditFormat(dietary_)#</td>
                         <td>
                             <form method="post" action="/members/guests.cfm" style="display:inline">
                                 <input type="hidden" name="action" value="update_rsvp">
@@ -476,12 +477,10 @@
                                 </select>
                             </form>
                         </td>
-                        <td class="hide-mobile"><cfif isNumeric(table_number_)>Table #table_number_#</cfif></td>
+                        <td><cfif isNumeric(table_number_)>Table #table_number_#</cfif></td>
                         <td style="white-space:nowrap">
                             <button type="button" class="btn btn-ghost btn-sm" style="margin-right:4px"
-                                onclick="openEditModal(#guestId_#,'#JSStringFormat(name_)#','#JSStringFormat(email_)#','#JSStringFormat(guest_group_)#','#JSStringFormat(rsvp_status_)#',#plus_one_#,'#JSStringFormat(plus_one_name_)#','#JSStringFormat(dietary_)#','#JSStringFormat(guests["notes"][rowNum])#')">
-                                Edit
-                            </button>
+                                onclick="openEditModal(#guestId_#,'#JSStringFormat(name_)#','#JSStringFormat(email_)#','#JSStringFormat(guest_group_)#','#JSStringFormat(rsvp_status_)#',#plus_one_#,'#JSStringFormat(plus_one_name_)#','#JSStringFormat(dietary_)#','#JSStringFormat(guests["notes"][rowNum])#')">Edit</button>
                             <cfif hasSite AND len(trim(email_))>
                             <form method="post" action="/members/guests.cfm" style="display:inline">
                                 <input type="hidden" name="action" value="resend_invite">
@@ -507,6 +506,94 @@
                 </tfoot>
             </table>
             </div>
+            </div><!--- /guest-desktop-table --->
+
+            <!--- Mobile cards --->
+            <div class="guest-mobile-cards">
+            <cfloop array="#sec.rows#" index="rowNum">
+                <cfset guestId_       = guests["guest_id"][rowNum]>
+                <cfset name_          = guests["name"][rowNum]>
+                <cfset email_         = guests["email"][rowNum]>
+                <cfset guest_group_   = guests["guest_group"][rowNum]>
+                <cfset dietary_       = guests["dietary_restrictions"][rowNum]>
+                <cfset rsvp_status_   = guests["rsvp_status"][rowNum]>
+                <cfset plus_one_      = guests["plus_one"][rowNum]>
+                <cfset plus_one_name_ = guests["plus_one_name"][rowNum]>
+                <cfset table_number_  = guests["table_number"][rowNum]>
+                <cfset rowIndex       = arrayFind(sec.rows, rowNum)>
+                <div style="border-bottom:1px solid var(--border);padding:16px 20px">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+                        <div>
+                            <p style="font-weight:700;font-size:15px;margin-bottom:4px">#HTMLEditFormat(name_)#</p>
+                            <cfif plus_one_>
+                                <span class="badge badge-blue">+1<cfif len(plus_one_name_)>: #HTMLEditFormat(plus_one_name_)#</cfif></span>
+                                <form method="post" action="/members/guests.cfm" style="display:inline;margin-left:4px">
+                                    <input type="hidden" name="action" value="remove_plus_one">
+                                    <input type="hidden" name="guestId" value="#guestId_#">
+                                    <button type="submit" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 7px" onclick="return confirm('Remove plus one for #JSStringFormat(name_)#?')">&##10005; Plus One</button>
+                                </form>
+                            </cfif>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-shrink:0;margin-left:10px">
+                            <button type="button" class="btn btn-ghost btn-sm"
+                                onclick="openEditModal(#guestId_#,'#JSStringFormat(name_)#','#JSStringFormat(email_)#','#JSStringFormat(guest_group_)#','#JSStringFormat(rsvp_status_)#',#plus_one_#,'#JSStringFormat(plus_one_name_)#','#JSStringFormat(dietary_)#','#JSStringFormat(guests["notes"][rowNum])#')">Edit</button>
+                            <cfif hasSite AND len(trim(email_))>
+                            <form method="post" action="/members/guests.cfm" style="display:inline">
+                                <input type="hidden" name="action" value="resend_invite">
+                                <input type="hidden" name="guestId" value="#guestId_#">
+                                <button type="submit" class="btn btn-sm">Resend</button>
+                            </form>
+                            </cfif>
+                            <form method="post" action="/members/guests.cfm" style="display:inline">
+                                <input type="hidden" name="action" value="delete_guest">
+                                <input type="hidden" name="guestId" value="#guestId_#">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remove this guest?')">&times;</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;font-size:13px">
+                        <div>
+                            <p style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">RSVP</p>
+                            <form method="post" action="/members/guests.cfm">
+                                <input type="hidden" name="action" value="update_rsvp">
+                                <input type="hidden" name="guestId" value="#guestId_#">
+                                <select name="rsvpStatus" onchange="this.form.submit()" style="font-size:12px;padding:4px 8px;border-radius:20px;border:1.5px solid var(--border);width:100%">
+                                    <option value="pending"   <cfif rsvp_status_ EQ "pending">selected</cfif>>Pending</option>
+                                    <option value="attending" <cfif rsvp_status_ EQ "attending">selected</cfif>>Attending</option>
+                                    <option value="declined"  <cfif rsvp_status_ EQ "declined">selected</cfif>>Declined</option>
+                                    <option value="maybe"     <cfif rsvp_status_ EQ "maybe">selected</cfif>>Maybe</option>
+                                </select>
+                            </form>
+                        </div>
+                        <cfif len(trim(guest_group_))>
+                        <div>
+                            <p style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Group</p>
+                            <p>#HTMLEditFormat(guest_group_)#</p>
+                        </div>
+                        </cfif>
+                        <cfif len(trim(email_))>
+                        <div style="grid-column:1/-1">
+                            <p style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Email</p>
+                            <a href="mailto:#HTMLEditFormat(email_)#" style="color:var(--gold);word-break:break-all">#HTMLEditFormat(email_)#</a>
+                        </div>
+                        </cfif>
+                        <cfif len(trim(dietary_))>
+                        <div style="grid-column:1/-1">
+                            <p style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Dietary</p>
+                            <p>#HTMLEditFormat(dietary_)#</p>
+                        </div>
+                        </cfif>
+                        <cfif isNumeric(table_number_)>
+                        <div>
+                            <p style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Table</p>
+                            <p>Table #table_number_#</p>
+                        </div>
+                        </cfif>
+                    </div>
+                </div>
+            </cfloop>
+            </div><!--- /guest-mobile-cards --->
+
         </div>
         </cfif>
     </cfloop>

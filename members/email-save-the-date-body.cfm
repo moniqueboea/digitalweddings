@@ -2,14 +2,14 @@
   email-save-the-date-body.cfm
 
   Required variables (set before including):
-    emailTheme   — struct from email-theme-helper.cfm
-    stdName1     — string: first partner first name (HTMLEditFormat already applied)
-    stdName2     — string: second partner first name (HTMLEditFormat already applied)
-    stdDate      — string: formatted wedding date, or ""
-    stdLocation  — string: wedding location, or ""
-    stdSiteLink  — string: full URL to wedding website
-    stdPhoto     — string: relative path to couple photo, or ""
-    stdRecipName — string: recipient first name (raw, not yet escaped)
+    emailTheme   - struct from email-theme-helper.cfm
+    stdName1     - string: first partner first name (HTMLEditFormat already applied)
+    stdName2     - string: second partner first name (HTMLEditFormat already applied)
+    stdDate      - string: formatted wedding date, or ""
+    stdLocation  - string: wedding location, or ""
+    stdSiteLink  - string: full URL to wedding website
+    stdPhoto     - string: relative path to couple photo, or ""
+    stdRecipName - string: recipient first name (raw, not yet escaped)
 --->
 <cfparam name="stdRecipName" default="">
 <cfoutput>
@@ -62,7 +62,7 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px">
     <tr>
       <td style="height:1px;background:#emailTheme.accentColor#;opacity:0.3;font-size:0;line-height:0">&nbsp;</td>
-      <td width="36" align="center" style="color:#emailTheme.accentColor#;font-size:20px;padding:0 10px;line-height:1;font-family:Georgia,serif">&##10022;</td>
+      <td width="36" align="center" style="color:#emailTheme.accentColor#;font-size:20px;padding:0 10px;line-height:1;font-family:Georgia,serif">&#10022;</td>
       <td style="height:1px;background:#emailTheme.accentColor#;opacity:0.3;font-size:0;line-height:0">&nbsp;</td>
     </tr>
     </table>
@@ -131,7 +131,7 @@
   <tr><td align="center" style="background:#emailTheme.headerBg#;padding:22px 40px;border-top:1px solid #emailTheme.dividerColor#">
     <p style="margin:0 0 4px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600">
       <a href="https://digitalweddings.love" style="color:#emailTheme.headerText#;text-decoration:none">digitalweddings.love</a>
-      <span style="color:##cc0022;margin-left:5px">&##9829;</span>
+      <span style="color:##cc0022;margin-left:5px">&#9829;</span>
     </p>
     <p style="margin:0;color:#emailTheme.headerText#;font-size:11px;opacity:0.5;font-family:Arial,Helvetica,sans-serif">Celebrating love, one wedding at a time.</p>
   </td></tr>

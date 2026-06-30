@@ -35,7 +35,7 @@
     <cflocation url="wedding-sites.cfm" addToken="false">
 </cfif>
 
-<!--- ===== ARCHIVE (soft delete — keeps all data) ===== --->
+<!--- ===== ARCHIVE (soft delete - keeps all data) ===== --->
 <cfif form.action EQ "delete_site" && isNumeric(form.siteId)>
     <cfquery datasource="#application.config.datasource#">
         UPDATE dbo.WeddingSites
@@ -107,7 +107,8 @@
     aka_inspired:      "/assets/aka-inspired.jpg",
     delta_inspired:    "/assets/delta-inspired.jpg",
     blush_pearl:       "/assets/blush-pearl.jpg",
-    sapphire_rose:     "/assets/sapphire-rose.jpg"
+    sapphire_rose:     "/assets/sapphire-rose.jpg",
+    pride_rainbow:     "/assets/pride-rainbow.jpg"
 }>
 
 <cfinclude template="../includes/layout-start.cfm">
@@ -135,6 +136,14 @@
 .site-row { display:flex;align-items:center;gap:16px;padding:20px;background:#fff;border:1px solid #e5e5e5;border-radius:12px;margin-bottom:12px;transition:box-shadow 0.2s; }
 .site-row:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); }
 .site-thumb { width:80px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0; }
+.site-row-actions { display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap; }
+@media(max-width:768px){
+    .site-row { flex-direction:column;align-items:stretch; }
+    .site-row-top { display:flex;align-items:center;gap:12px; }
+    .site-row-actions { flex-direction:row;flex-wrap:wrap;gap:8px;margin-top:12px; }
+    .site-row-actions a, .site-row-actions button { flex:1;min-width:calc(50% - 4px);text-align:center;justify-content:center;box-sizing:border-box; }
+    .site-row-actions .btn-change-tpl { flex:none;width:100%; }
+}
 </style>
 
 <section style="padding:60px 0">
@@ -157,22 +166,24 @@
         <cfoutput query="sites">
         <cfset tImg = structKeyExists(tplImages, template) ? tplImages[template] : "">
         <div class="site-row">
-            <img src="#HTMLEditFormat(tImg)#" alt="#HTMLEditFormat(template)#" class="site-thumb">
-            <div style="flex:1;min-width:0">
-                <p style="font-weight:700;font-size:16px;color:##1a1a1a">#HTMLEditFormat(couple_name_1)# &amp; #HTMLEditFormat(couple_name_2)#</p>
-                <p style="font-size:12px;color:##888;margin-top:2px">#replace(HTMLEditFormat(template),'_',' ','all')# template<cfif len(wedding_date)> &middot; #dateFormat(wedding_date,'mmmm d, yyyy')#</cfif></p>
-                <cfif len(slug)>
-                <cfif published>
-                <p style="font-size:12px;font-family:monospace;color:var(--gold);margin-top:4px">
-                    digitalweddings.love/site.cfm?slug=#HTMLEditFormat(slug)#
-                    &nbsp;<a href="/site.cfm?slug=#URLEncodedFormat(slug)#" target="_blank" style="color:var(--gold)"><i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle"></i></a>
-                </p>
-                <cfelse>
-                <p style="font-size:11px;color:##d97706;font-style:italic;margin-top:4px">Publish your site so guests can view it</p>
-                </cfif>
-                </cfif>
+            <div class="site-row-top">
+                <img src="#HTMLEditFormat(tImg)#" alt="#HTMLEditFormat(template)#" class="site-thumb">
+                <div style="flex:1;min-width:0">
+                    <p style="font-weight:700;font-size:16px;color:##1a1a1a">#HTMLEditFormat(couple_name_1)# &amp; #HTMLEditFormat(couple_name_2)#</p>
+                    <p style="font-size:12px;color:##888;margin-top:2px">#replace(HTMLEditFormat(template),'_',' ','all')# template<cfif len(wedding_date)> &middot; #dateFormat(wedding_date,'mmmm d, yyyy')#</cfif></p>
+                    <cfif len(slug)>
+                    <cfif published>
+                    <p style="font-size:12px;font-family:monospace;color:var(--gold);margin-top:4px;word-break:break-all">
+                        digitalweddings.love/site.cfm?slug=#HTMLEditFormat(slug)#
+                        &nbsp;<a href="/site.cfm?slug=#URLEncodedFormat(slug)#" target="_blank" style="color:var(--gold)"><i data-lucide="external-link" style="width:11px;height:11px;vertical-align:middle"></i></a>
+                    </p>
+                    <cfelse>
+                    <p style="font-size:11px;color:##d97706;font-style:italic;margin-top:4px">Publish your site so guests can view it</p>
+                    </cfif>
+                    </cfif>
+                </div>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
+            <div class="site-row-actions">
                 <form method="post" action="/members/wedding-sites.cfm" style="display:inline">
                     <input type="hidden" name="action" value="toggle_publish">
                     <input type="hidden" name="siteId" value="#wedding_site_id#">
@@ -185,7 +196,7 @@
                 <a href="/site.cfm?slug=#URLEncodedFormat(slug)#" target="_blank" class="btn btn-ghost btn-sm" title="View live site" style="color:var(--gold)"><i data-lucide="external-link" style="width:14px;height:14px"></i></a>
                 </cfif>
                 <a href="/members/wedding-site-edit.cfm?siteId=#wedding_site_id#" class="btn btn-ghost btn-sm" title="Edit"><i data-lucide="pencil" style="width:14px;height:14px"></i></a>
-                <a href="/members/wedding-sites.cfm?changeTpl=#wedding_site_id#" style="padding:7px 14px;font-size:12px;font-weight:600;border-radius:7px;cursor:pointer;border:1px solid ##B8860B;color:##B8860B;background:##fff;text-decoration:none;display:inline-flex;align-items:center;gap:5px"><i data-lucide="palette" style="width:12px;height:12px"></i> Change Template</a>
+                <a href="/members/wedding-sites.cfm?changeTpl=#wedding_site_id#" class="btn-change-tpl" style="padding:7px 14px;font-size:12px;font-weight:600;border-radius:7px;cursor:pointer;border:1px solid ##B8860B;color:##B8860B;background:##fff;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:5px"><i data-lucide="palette" style="width:12px;height:12px"></i> Change Template</a>
             </div>
         </div>
 
@@ -220,6 +231,29 @@
     </h2>
 
     <div class="tpl-grid">
+
+        <div class="tpl-card" style="border:2px solid transparent;border-image:linear-gradient(135deg,#E8373A,#F4831F,#FBBF24,#22A55B,#1D6FB5,#7B3FBE) 1">
+            <div class="tpl-img-wrap">
+                <img src="/assets/pride-rainbow.jpg" alt="Pride Rainbow" onerror="this.style.background='linear-gradient(135deg,#E8373A,#F4831F,#FBBF24,#22A55B,#1D6FB5,#7B3FBE)'">
+                <div class="tpl-overlay">
+                    <a href="/members/preview-template.cfm?template=pride_rainbow" target="_blank" class="tpl-btn-preview"><i data-lucide="eye" style="width:14px;height:14px"></i>Preview</a>
+                    <a href="/members/wedding-site-edit.cfm?template=pride_rainbow" class="tpl-btn-select"><i data-lucide="check" style="width:14px;height:14px"></i>Select</a>
+                </div>
+            </div>
+            <div class="tpl-card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <p class="tpl-name">Pride Rainbow</p>
+                    <div style="display:flex;gap:5px">
+                        <span class="color-dot" style="background:#E8373A"></span>
+                        <span class="color-dot" style="background:#FBBF24"></span>
+                        <span class="color-dot" style="background:#22A55B"></span>
+                        <span class="color-dot" style="background:#1D6FB5"></span>
+                        <span class="color-dot" style="background:#7B3FBE"></span>
+                    </div>
+                </div>
+                <p class="tpl-desc">Bold rainbow stripes &amp; vibrant love &mdash; a joyful, colorful celebration of your unique love story.</p>
+            </div>
+        </div>
 
         <div class="tpl-card" style="border:2px solid #D4478A">
             <div class="tpl-img-wrap">

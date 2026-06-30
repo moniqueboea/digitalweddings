@@ -22,18 +22,41 @@
     <cflocation url="planning-tools.cfm" addToken="false">
 </cfif>
 
+<!--- Ensure deposit_paid column exists --->
+<cftry>
+    <cfquery name="qCheckDepositCol" datasource="#application.config.datasource#">
+        SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA='dbo' AND TABLE_NAME='BudgetItems' AND COLUMN_NAME='deposit_paid'
+    </cfquery>
+    <cfif qCheckDepositCol.cnt EQ 0>
+        <cfquery datasource="#application.config.datasource#">
+            ALTER TABLE dbo.BudgetItems ADD deposit_paid DECIMAL(12,2) NOT NULL CONSTRAINT DF_BudgetItems_Deposit DEFAULT (0)
+        </cfquery>
+        <cfquery datasource="#application.config.datasource#">
+            UPDATE dbo.BudgetItems SET deposit_paid = CASE WHEN actual_cost > 0 THEN actual_cost ELSE estimated_cost END WHERE paid = 1
+        </cfquery>
+    </cfif>
+    <cfcatch></cfcatch>
+</cftry>
+
 <!--- Handle: add budget item --->
 <cfif form.action EQ "add_budget">
     <cfif len(trim(form.category)) && len(trim(form.itemName))>
+        <cfset newDeposit = val(structKeyExists(form,'depositPaid') ? form.depositPaid : 0)>
+        <cfset newEstimated = val(form.estimatedCost)>
+        <cfif newDeposit GT newEstimated><cfset newDeposit = newEstimated></cfif>
+        <cfif newDeposit LT 0><cfset newDeposit = 0></cfif>
+        <cfset newPaid = (newDeposit GTE newEstimated && newEstimated GT 0) ? 1 : 0>
         <cfquery datasource="#application.config.datasource#">
-            INSERT INTO dbo.BudgetItems (user_id, category, item_name, estimated_cost, actual_cost, paid, vendor_name, notes)
+            INSERT INTO dbo.BudgetItems (user_id, category, item_name, estimated_cost, actual_cost, deposit_paid, paid, vendor_name, notes)
             VALUES (
                 <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">,
                 <cfqueryparam value="#trim(form.category)#" cfsqltype="cf_sql_nvarchar">,
                 <cfqueryparam value="#trim(form.itemName)#" cfsqltype="cf_sql_nvarchar">,
-                <cfqueryparam value="#val(form.estimatedCost)#" cfsqltype="cf_sql_decimal">,
-                <cfqueryparam value="#val(form.actualCost)#" cfsqltype="cf_sql_decimal">,
-                0,
+                <cfqueryparam value="#newEstimated#" cfsqltype="cf_sql_decimal">,
+                <cfqueryparam value="#newEstimated#" cfsqltype="cf_sql_decimal">,
+                <cfqueryparam value="#newDeposit#" cfsqltype="cf_sql_decimal">,
+                <cfqueryparam value="#newPaid#" cfsqltype="cf_sql_bit">,
                 <cfqueryparam value="#trim(form.vendorName)#" cfsqltype="cf_sql_nvarchar" null="#!len(trim(form.vendorName))#">,
                 <cfqueryparam value="#trim(form.notes)#" cfsqltype="cf_sql_nvarchar" null="#!len(trim(form.notes))#">
             )
@@ -42,13 +65,29 @@
     <cflocation url="planning-tools.cfm" addToken="false">
 </cfif>
 
-<!--- Handle: toggle paid --->
-<cfif form.action EQ "toggle_paid" && isNumeric(form.budgetItemId)>
-    <cfquery datasource="#application.config.datasource#">
-        UPDATE dbo.BudgetItems SET paid = ~paid, updated_at = SYSUTCDATETIME()
-        WHERE budget_item_id = <cfqueryparam value="#form.budgetItemId#" cfsqltype="cf_sql_bigint"> AND user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
+<!--- Handle: update deposit --->
+<cfif form.action EQ "update_deposit" && isNumeric(form.budgetItemId)>
+    <cfquery name="qItemForDeposit" datasource="#application.config.datasource#">
+        SELECT estimated_cost FROM dbo.BudgetItems
+        WHERE budget_item_id = <cfqueryparam value="#form.budgetItemId#" cfsqltype="cf_sql_bigint">
+          AND user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
     </cfquery>
-    <cflocation url="planning-tools.cfm" addToken="false">
+    <cfif qItemForDeposit.recordCount>
+        <cfset updDeposit = val(form.depositPaid)>
+        <cfset updEstimated = qItemForDeposit.estimated_cost>
+        <cfif updDeposit LT 0><cfset updDeposit = 0></cfif>
+        <cfif updDeposit GT updEstimated><cfset updDeposit = updEstimated></cfif>
+        <cfset updPaid = (updDeposit GTE updEstimated && updEstimated GT 0) ? 1 : 0>
+        <cfquery datasource="#application.config.datasource#">
+            UPDATE dbo.BudgetItems
+            SET deposit_paid = <cfqueryparam value="#updDeposit#" cfsqltype="cf_sql_decimal">,
+                paid = <cfqueryparam value="#updPaid#" cfsqltype="cf_sql_bit">,
+                updated_at = SYSUTCDATETIME()
+            WHERE budget_item_id = <cfqueryparam value="#form.budgetItemId#" cfsqltype="cf_sql_bigint">
+              AND user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
+        </cfquery>
+    </cfif>
+    <cflocation url="planning-tools.cfm##budget" addToken="false">
 </cfif>
 
 <!--- Handle: delete budget item --->
@@ -94,46 +133,33 @@
 
 <!--- Handle: bulk add prebuilt checklist items --->
 <cfif form.action EQ "add_prebuilt" && structKeyExists(form, "prebuiltItems")>
-    <cfset itemList = form.prebuiltItems>
-    <cfif isArray(itemList)>
-        <cfloop array="#itemList#" index="taskTitle">
-            <cfif len(trim(taskTitle))>
-                <cfquery datasource="#application.config.datasource#">
-                    INSERT INTO dbo.ChecklistItems (user_id, title, category, priority)
-                    VALUES (
-                        <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">,
-                        <cfqueryparam value="#trim(taskTitle)#" cfsqltype="cf_sql_nvarchar">,
-                        'Other',
-                        'medium'
-                    )
-                </cfquery>
-            </cfif>
-        </cfloop>
-    <cfelseif len(trim(itemList))>
-        <!--- single item selected --->
-        <cfquery datasource="#application.config.datasource#">
-            INSERT INTO dbo.ChecklistItems (user_id, title, category, priority)
-            VALUES (
-                <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">,
-                <cfqueryparam value="#trim(itemList)#" cfsqltype="cf_sql_nvarchar">,
-                'Other',
-                'medium'
-            )
-        </cfquery>
-    </cfif>
+    <cfloop list="#form.prebuiltItems#" index="taskTitle" delimiters=",">
+        <cfif len(trim(taskTitle))>
+            <cfquery datasource="#application.config.datasource#">
+                INSERT INTO dbo.ChecklistItems (user_id, title, category, priority)
+                VALUES (
+                    <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">,
+                    <cfqueryparam value="#trim(taskTitle)#" cfsqltype="cf_sql_nvarchar">,
+                    'Other',
+                    'medium'
+                )
+            </cfquery>
+        </cfif>
+    </cfloop>
     <cflocation url="planning-tools.cfm##checklist" addToken="false">
 </cfif>
 
 <!--- Prebuilt timeline data --->
 <cfset prebuiltTimeline = [
     {label:"12+ Months Before", items:["Set wedding budget","Create preliminary guest list","Choose wedding date","Decide on wedding style/theme","Hire wedding planner (if applicable)","Select ceremony venue","Select reception venue","Create wedding website","Take engagement photos","Announce engagement"]},
-    {label:"9–12 Months Before", items:["Send Save the Dates (destination wedding)","Send Save the Dates (holiday weekend wedding)","Book photographer","Book videographer","Book caterer","Book DJ or band","Book officiant","Reserve hotel room blocks","Select wedding party","Shop for wedding dress","Begin researching honeymoon options","Book transportation","Send Save the Dates (out-of-state guests)"]},
-    {label:"6–9 Months Before", items:["Order wedding dress","Select bridesmaid dresses","Select groom and groomsmen attire","Register for gifts","Book florist","Book cake baker","Book hair and makeup artists","Plan rehearsal dinner","Send Save the Dates (local wedding)"]},
-    {label:"4–6 Months Before", items:["Finalize guest list","Order invitations","Schedule dress fittings","Plan ceremony details","Choose wedding rings","Purchase wedding accessories","Book rental items","Select wedding favors","Plan honeymoon itinerary"]},
-    {label:"2–4 Months Before", items:["Mail invitations","Schedule premarital counseling","Create seating chart draft","Meet with vendors","Finalize menu","Finalize floral selections","Obtain marriage license requirements","Purchase gifts for wedding party"]},
+    {label:"9-12 Months Before", items:["Send Save the Dates (destination wedding)","Send Save the Dates (holiday weekend wedding)","Book photographer","Book videographer","Book caterer","Book DJ or band","Book officiant","Reserve hotel room blocks","Select wedding party","Shop for wedding dress","Begin researching honeymoon options","Book transportation","Send Save the Dates (out-of-state guests)"]},
+    {label:"6-9 Months Before", items:["Order wedding dress","Select bridesmaid dresses","Select groom and groomsmen attire","Register for gifts","Book florist","Book cake baker","Book hair and makeup artists","Plan rehearsal dinner","Send Save the Dates (local wedding)"]},
+    {label:"4-6 Months Before", items:["Finalize guest list","Order invitations","Schedule dress fittings","Plan ceremony details","Choose wedding rings","Purchase wedding accessories","Book rental items","Select wedding favors","Plan honeymoon itinerary"]},
+    {label:"2-4 Months Before", items:["Mail invitations","Schedule premarital counseling","Create seating chart draft","Meet with vendors","Finalize menu","Finalize floral selections","Obtain marriage license requirements","Purchase gifts for wedding party"]},
     {label:"1 Month Before", items:["Confirm RSVPs","Finalize seating chart","Confirm vendor timelines","Final dress fitting","Write vows","Prepare wedding day emergency kit","Confirm transportation schedule","Create wedding day timeline","Pay final vendor balances"]},
     {label:"1 Week Before", items:["Pick up attire","Confirm vendor arrivals","Pack for honeymoon","Prepare tip envelopes","Give vendor contact list to coordinator","Practice vows","Get manicure/pedicure"]},
-    {label:"Wedding Day", items:["Eat breakfast","Hair and makeup","Exchange gifts/letters","Ceremony","Photos","Reception","Final vendor payments/tips","Depart for honeymoon"]}
+    {label:"Wedding Day", items:["Eat breakfast","Hair and makeup","Exchange gifts/letters","Ceremony","Photos","Reception","Final vendor payments/tips","Depart for honeymoon"]},
+    {label:"Destination Wedding", items:["Book hotel","Book flights","Book cruise"]}
 ]>
 
 <cfset selectedTimeline = structKeyExists(url,'timeline') ? url.timeline : "">
@@ -145,7 +171,8 @@
 <cfset totalBudget = val(userRow.total_budget)>
 
 <cfquery name="budgetItems" datasource="#application.config.datasource#">
-    SELECT budget_item_id, category, item_name, estimated_cost, actual_cost, paid, vendor_name, notes
+    SELECT budget_item_id, category, item_name, estimated_cost, actual_cost,
+           ISNULL(deposit_paid, 0) AS deposit_paid, paid, vendor_name, notes
     FROM dbo.BudgetItems WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
     ORDER BY category, item_name
 </cfquery>
@@ -157,11 +184,15 @@
 </cfquery>
 
 <!--- Compute totals --->
-<cfset totalEstimated = 0><cfset totalActual = 0><cfset totalPaid = 0>
+<cfset totalEstimated = 0>
+<cfset totalDeposits = 0>
+<cfset totalFullyPaid = 0>
+<cfset totalRemaining = 0>
 <cfloop query="budgetItems">
     <cfset totalEstimated += estimated_cost>
-    <cfset totalActual += actual_cost>
-    <cfif paid><cfset totalPaid += actual_cost></cfif>
+    <cfset totalDeposits += deposit_paid>
+    <cfif paid><cfset totalFullyPaid += estimated_cost></cfif>
+    <cfset totalRemaining += (estimated_cost - deposit_paid)>
 </cfloop>
 <cfset remaining = totalBudget - totalEstimated>
 <cfset budgetPct = totalBudget GT 0 ? min(100, int((totalEstimated / totalBudget) * 100)) : 0>
@@ -255,8 +286,8 @@
     </cfif>
 </cfif>
 
-<cfset budgetCategories = ["Venue","Catering","Photography","Videography","Flowers","Music / DJ","Attire","Cake","Invitations","Décor","Transportation","Favors","Beauty","Officiant","Other"]>
-<cfset checklistCategories = ["Venue","Catering","Attire","Flowers","Music","Photography","Invitations","Décor","Transportation","Honeymoon","Legal","Other"]>
+<cfset budgetCategories = ["Venue","Catering","Photography","Videography","Flowers","Music / DJ","Attire","Cake","Invitations","Decor","Transportation","Favors","Beauty","Officiant","Other"]>
+<cfset checklistCategories = ["Venue","Catering","Attire","Flowers","Music","Photography","Invitations","Decor","Transportation","Honeymoon","Legal","Other"]>
 
 <cfset showBudgetForm = structKeyExists(url,'addBudget') && url.addBudget EQ 1>
 <cfset showChecklistForm = structKeyExists(url,'addTask') && url.addTask EQ 1>
@@ -273,15 +304,15 @@
     <!--- Wedding Countdown --->
     <cfinclude template="../includes/wedding-countdown.cfm">
 
-    <!--- 4 Summary Cards --->
-    <div class="stats-row" style="margin-bottom:40px">
+    <!--- 5 Summary Cards --->
+    <div class="stats-row" style="margin-bottom:40px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
 
         <!--- Total Budget Card --->
         <div class="stat-card" style="position:relative">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
                 <div style="display:flex;align-items:center;gap:8px">
-                    <i data-lucide="dollar-sign" style="width:18px;height:18px;color:var(--gold)"></i>
-                    <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Total Budget</span>
+                    <i data-lucide="wallet" style="width:18px;height:18px;color:var(--gold)"></i>
+                    <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Wedding Budget</span>
                 </div>
                 <a href="planning-tools.cfm?editBudget=1" style="color:var(--text-muted);line-height:1" title="Edit budget"><i data-lucide="pencil" style="width:13px;height:13px"></i></a>
             </div>
@@ -299,52 +330,71 @@
                 <cfelse>
                     <a href="planning-tools.cfm?editBudget=1" style="font-size:16px;color:var(--text-muted);text-decoration:none">Set budget &rarr;</a>
                 </cfif>
-                <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Click the pencil to edit</p>
+                <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Click pencil to edit</p>
             </cfif>
         </div>
 
-        <!--- Remaining Card --->
+        <!--- Total Budgeted Expenses Card --->
+        <div class="stat-card">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <i data-lucide="list" style="width:18px;height:18px;color:var(--gold)"></i>
+                <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Budgeted</span>
+            </div>
+            <div class="stat-num"><cfoutput>$#numberFormat(totalEstimated,'999,999')#</cfoutput></div>
+            <cfif totalBudget GT 0>
+                <div style="margin-top:10px;background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+                    <div style="height:6px;border-radius:4px;background:<cfoutput><cfif budgetPct GTE 100>##dc2626<cfelse>var(--gold)</cfif></cfoutput>;width:<cfoutput>#budgetPct#</cfoutput>%"></div>
+                </div>
+                <p style="font-size:11px;color:var(--text-muted);margin-top:4px"><cfoutput>#budgetPct#</cfoutput>% of budget allocated</p>
+            </cfif>
+        </div>
+
+        <!--- Total Deposits Paid Card --->
+        <div class="stat-card">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <i data-lucide="credit-card" style="width:18px;height:18px;color:var(--gold)"></i>
+                <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Deposits Paid</span>
+            </div>
+            <cfoutput><div class="stat-num" style="color:##059669">$#numberFormat(totalDeposits,'999,999')#</div></cfoutput>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Total paid to date</p>
+        </div>
+
+        <!--- Total Remaining Balances Card --->
+        <div class="stat-card">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <i data-lucide="clock" style="width:18px;height:18px;color:var(--gold)"></i>
+                <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Still Owed</span>
+            </div>
+            <div class="stat-num" style="<cfoutput><cfif totalRemaining GT 0>color:##d97706</cfif></cfoutput>"><cfoutput>$#numberFormat(totalRemaining,'999,999')#</cfoutput></div>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Remaining balances</p>
+        </div>
+
+        <!--- Remaining Budget Available Card --->
         <div class="stat-card" style="<cfoutput><cfif totalBudget GT 0 && totalEstimated GT totalBudget>border-color:##fca5a5</cfif></cfoutput>">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-                <i data-lucide="dollar-sign" style="width:18px;height:18px;color:<cfoutput><cfif totalBudget GT 0 && totalEstimated GT totalBudget>##dc2626<cfelse>##059669</cfif></cfoutput>"></i>
-                <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Remaining</span>
+                <i data-lucide="dollar-sign" style="width:18px;height:18px;color:<cfoutput><cfif totalBudget GT 0 && remaining LT 0>##dc2626<cfelse>##059669</cfif></cfoutput>"></i>
+                <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Budget Left</span>
             </div>
             <cfif totalBudget GT 0>
                 <div class="stat-num" style="color:<cfoutput><cfif remaining LT 0>##dc2626<cfelse>##059669</cfif></cfoutput>">
                     <cfoutput><cfif remaining LT 0>-</cfif>$#numberFormat(abs(remaining),'999,999')#</cfoutput>
                 </div>
-                <div style="margin-top:10px;background:var(--border);border-radius:4px;height:6px;overflow:hidden">
-                    <div style="height:6px;border-radius:4px;background:<cfoutput><cfif budgetPct GTE 100>##dc2626<cfelse>var(--gold)</cfif></cfoutput>;width:<cfoutput>#budgetPct#</cfoutput>%"></div>
-                </div>
-                <p style="font-size:11px;color:var(--text-muted);margin-top:4px"><cfoutput>#budgetPct#</cfoutput>% of budget used</p>
+                <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Unallocated budget</p>
             <cfelse>
                 <div class="stat-num" style="color:var(--text-muted)">&mdash;</div>
+                <p style="font-size:11px;color:var(--text-muted);margin-top:4px">Set a budget above</p>
             </cfif>
         </div>
+    </div>
 
-        <!--- Estimated / Actual Card --->
-        <div class="stat-card">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-                <i data-lucide="dollar-sign" style="width:18px;height:18px;color:var(--gold)"></i>
-                <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Estimated</span>
-            </div>
-            <div class="stat-num"><cfoutput>$#numberFormat(totalEstimated,'999,999')#</cfoutput></div>
-            <p style="font-size:11px;color:var(--text-muted);margin-top:4px">
-                <cfoutput>$#numberFormat(totalActual,'999,999')# actual &middot; $#numberFormat(totalPaid,'999,999')# paid</cfoutput>
-            </p>
+    <!--- Tasks progress bar (compact) --->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:32px;padding:14px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)">
+        <i data-lucide="check-square" style="width:18px;height:18px;color:var(--gold);flex-shrink:0"></i>
+        <span style="font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);flex-shrink:0">Tasks</span>
+        <div style="flex:1;background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+            <div style="height:6px;border-radius:4px;background:var(--gold);width:<cfoutput>#checklistPct#</cfoutput>%"></div>
         </div>
-
-        <!--- Tasks Card --->
-        <div class="stat-card">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-                <i data-lucide="check-square" style="width:18px;height:18px;color:var(--gold)"></i>
-                <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">Tasks</span>
-            </div>
-            <div class="stat-num"><cfoutput>#checklistDone#/#checklistItems.recordCount#</cfoutput></div>
-            <div style="margin-top:10px;background:var(--border);border-radius:4px;height:6px;overflow:hidden">
-                <div style="height:6px;border-radius:4px;background:var(--gold);width:<cfoutput>#checklistPct#</cfoutput>%"></div>
-            </div>
-        </div>
+        <span style="font-size:12px;color:var(--text-muted);flex-shrink:0"><cfoutput>#checklistDone#/#checklistItems.recordCount# complete</cfoutput></span>
     </div>
 
     <!--- ===== BUDGET SECTION ===== --->
@@ -378,12 +428,12 @@
                         <input type="text" name="itemName" placeholder="e.g. Reception Hall" required>
                     </div>
                     <div class="field">
-                        <label>Estimated Cost ($)</label>
-                        <input type="number" name="estimatedCost" min="0" step="0.01" value="0">
+                        <label>Budget Amount ($)</label>
+                        <input type="number" name="estimatedCost" min="0" step="0.01" value="0" id="newBudgetAmt">
                     </div>
                     <div class="field">
-                        <label>Actual Cost ($)</label>
-                        <input type="number" name="actualCost" min="0" step="0.01" value="0">
+                        <label>Deposit Paid ($) <span style="font-size:11px;color:var(--text-muted);font-weight:400">optional</span></label>
+                        <input type="number" name="depositPaid" min="0" step="0.01" value="0" id="newDepositAmt">
                     </div>
                     <div class="field">
                         <label>Vendor Name</label>
@@ -394,6 +444,14 @@
                         <input type="text" name="notes" placeholder="Optional">
                     </div>
                 </div>
+                <script>
+                document.getElementById('newDepositAmt').addEventListener('blur', function() {
+                    var budget = parseFloat(document.getElementById('newBudgetAmt').value) || 0;
+                    var deposit = parseFloat(this.value) || 0;
+                    if (deposit > budget) this.value = budget;
+                    if (deposit < 0) this.value = 0;
+                });
+                </script>
                 <div style="display:flex;gap:10px">
                     <button type="submit" class="btn btn-primary">Add Item</button>
                     <a href="planning-tools.cfm" class="btn btn-ghost">Cancel</a>
@@ -402,45 +460,132 @@
         </div>
         </cfif>
 
+        <!--- Column headers --->
         <cfif budgetItems.recordCount>
+        <div>
+            <div class="budget-col-headers" style="display:grid;grid-template-columns:1fr 110px 110px 110px 90px 80px;gap:8px;padding:6px 16px;margin-bottom:4px">
+                <span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)">Item</span>
+                <span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);text-align:right">Budget</span>
+                <span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);text-align:right">Deposit Paid</span>
+                <span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);text-align:right">Remaining</span>
+                <span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);text-align:center">Status</span>
+                <span></span>
+            </div>
+
             <cfset lastCat = "">
+            <cfset editDepositId = structKeyExists(url,'editDeposit') && isNumeric(url.editDeposit) ? val(url.editDeposit) : 0>
             <cfoutput query="budgetItems">
+                <cfset itemRemaining = estimated_cost - deposit_paid>
+                <cfif deposit_paid GTE estimated_cost && estimated_cost GT 0>
+                    <cfset payStatus = "Paid">
+                    <cfset statusStyle = "background:##d1fae5;color:##059669">
+                <cfelseif deposit_paid GT 0>
+                    <cfset payStatus = "Partially Paid">
+                    <cfset statusStyle = "background:##fef3c7;color:##d97706">
+                <cfelse>
+                    <cfset payStatus = "Not Paid">
+                    <cfset statusStyle = "background:##fee2e2;color:##dc2626">
+                </cfif>
+
                 <cfif category NEQ lastCat>
-                    <cfif lastCat NEQ ""><br></cfif>
-                    <p style="font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">#HTMLEditFormat(category)#</p>
+                    <cfif lastCat NEQ ""><div style="height:8px"></div></cfif>
+                    <p style="font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;padding:0 16px">#HTMLEditFormat(category)#</p>
                     <cfset lastCat = category>
                 </cfif>
-                <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:8px;background:var(--bg-card)">
-                    <!--- Paid toggle --->
-                    <form method="post" action="/members/planning-tools.cfm" style="flex-shrink:0">
-                        <input type="hidden" name="action" value="toggle_paid">
-                        <input type="hidden" name="budgetItemId" value="#budget_item_id#">
-                        <button type="submit" title="Toggle paid" style="width:20px;height:20px;border-radius:4px;border:2px solid <cfif paid>var(--gold)<cfelse>var(--border)</cfif>;background:<cfif paid>var(--gold)<cfelse>##fff</cfif>;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0">
-                            <cfif paid><span style="color:##fff;font-size:12px">&##10003;</span></cfif>
-                        </button>
-                    </form>
-                    <!--- Name + meta --->
-                    <div style="flex:1;min-width:0">
-                        <p style="font-size:14px;font-weight:500;<cfif paid>text-decoration:line-through;opacity:0.6;</cfif>">#HTMLEditFormat(item_name)#</p>
-                        <p style="font-size:11px;color:var(--text-muted)">#HTMLEditFormat(category)#<cfif len(vendor_name)> &middot; #HTMLEditFormat(vendor_name)#</cfif></p>
+
+                <div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;background:var(--bg-card);overflow:hidden">
+                    <!--- Desktop row --->
+                    <div class="budget-desktop-row" style="display:grid;grid-template-columns:1fr 110px 110px 110px 90px 80px;gap:8px;padding:12px 16px;align-items:center">
+                        <div style="min-width:0">
+                            <p style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;#payStatus EQ 'Paid' ? 'text-decoration:line-through;opacity:0.6;' : ''#">#HTMLEditFormat(item_name)#</p>
+                            <p style="font-size:11px;color:var(--text-muted)">#HTMLEditFormat(category)#<cfif len(vendor_name)> &middot; #HTMLEditFormat(vendor_name)#</cfif></p>
+                        </div>
+                        <div style="text-align:right">
+                            <p style="font-size:14px;font-weight:600;font-family:var(--font-display)">$#numberFormat(estimated_cost,'999,999.00')#</p>
+                        </div>
+                        <div style="text-align:right">
+                            <a href="planning-tools.cfm?editDeposit=#budget_item_id###budget" style="font-size:14px;font-weight:600;font-family:var(--font-display);color:<cfif deposit_paid GT 0>##059669<cfelse>var(--text-muted)</cfif>;text-decoration:none" title="Click to edit deposit">
+                                $#numberFormat(deposit_paid,'999,999.00')#
+                            </a>
+                        </div>
+                        <div style="text-align:right">
+                            <p style="font-size:14px;font-weight:600;font-family:var(--font-display);color:<cfif itemRemaining EQ 0>##059669<cfelse>var(--text)</cfif>">$#numberFormat(itemRemaining,'999,999.00')#</p>
+                        </div>
+                        <div style="text-align:center">
+                            <span style="font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;white-space:nowrap;#statusStyle#">#payStatus#</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">
+                            <a href="planning-tools.cfm?editDeposit=#budget_item_id###budget" title="Record payment" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;line-height:1;text-decoration:none">
+                                <i data-lucide="pencil" style="width:14px;height:14px"></i>
+                            </a>
+                            <form method="post" action="/members/planning-tools.cfm" style="margin:0">
+                                <input type="hidden" name="action" value="delete_budget">
+                                <input type="hidden" name="budgetItemId" value="#budget_item_id#">
+                                <button type="submit" onclick="return confirm('Delete this budget item?')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px" title="Delete">
+                                    <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                    <!--- Amounts --->
-                    <div style="text-align:right;flex-shrink:0">
-                        <p style="font-family:var(--font-display);font-size:16px;font-weight:600">$#numberFormat(actual_cost,'999,999.00')#</p>
-                        <p style="font-size:11px;color:var(--text-muted)">est. $#numberFormat(estimated_cost,'999,999.00')#</p>
+                    <!--- Mobile card --->
+                    <div class="budget-mobile-card" style="display:none;padding:14px 16px">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+                            <div>
+                                <p style="font-size:14px;font-weight:600;#payStatus EQ 'Paid' ? 'text-decoration:line-through;opacity:0.6;' : ''#">#HTMLEditFormat(item_name)#</p>
+                                <p style="font-size:11px;color:var(--text-muted);margin-top:2px">#HTMLEditFormat(category)#<cfif len(vendor_name)> &middot; #HTMLEditFormat(vendor_name)#</cfif></p>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px">
+                                <span style="font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;#statusStyle#">#payStatus#</span>
+                                <a href="planning-tools.cfm?editDeposit=#budget_item_id###budget" title="Edit deposit" style="color:var(--text-muted);padding:4px;line-height:1;text-decoration:none">
+                                    <i data-lucide="pencil" style="width:14px;height:14px"></i>
+                                </a>
+                                <form method="post" action="/members/planning-tools.cfm" style="margin:0">
+                                    <input type="hidden" name="action" value="delete_budget">
+                                    <input type="hidden" name="budgetItemId" value="#budget_item_id#">
+                                    <button type="submit" onclick="return confirm('Delete this budget item?')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px" title="Delete">
+                                        <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;border-top:1px solid var(--border);padding-top:10px">
+                            <div>
+                                <p style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Budget</p>
+                                <p style="font-size:14px;font-weight:600;font-family:var(--font-display)">$#numberFormat(estimated_cost,'999,999.00')#</p>
+                            </div>
+                            <div>
+                                <p style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Deposit</p>
+                                <a href="planning-tools.cfm?editDeposit=#budget_item_id###budget" style="font-size:14px;font-weight:600;font-family:var(--font-display);color:<cfif deposit_paid GT 0>##059669<cfelse>var(--text-muted)</cfif>;text-decoration:none">
+                                    $#numberFormat(deposit_paid,'999,999.00')#
+                                </a>
+                            </div>
+                            <div>
+                                <p style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Remaining</p>
+                                <p style="font-size:14px;font-weight:600;font-family:var(--font-display);color:<cfif itemRemaining EQ 0>##059669<cfelse>var(--text)</cfif>">$#numberFormat(itemRemaining,'999,999.00')#</p>
+                            </div>
+                        </div>
                     </div>
-                    <!--- Paid badge --->
-                    <cfif paid><span class="badge badge-green" style="flex-shrink:0">Paid</span><cfelse><span class="badge badge-amber" style="flex-shrink:0">Unpaid</span></cfif>
-                    <!--- Delete --->
-                    <form method="post" action="/members/planning-tools.cfm" style="flex-shrink:0">
-                        <input type="hidden" name="action" value="delete_budget">
-                        <input type="hidden" name="budgetItemId" value="#budget_item_id#">
-                        <button type="submit" onclick="return confirm('Delete this budget item?')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px" title="Delete">
-                            <i data-lucide="trash-2" style="width:15px;height:15px"></i>
-                        </button>
-                    </form>
+                    <!--- Inline deposit edit form --->
+                    <cfif editDepositId EQ budget_item_id>
+                    <div style="border-top:1px solid var(--border);padding:14px 16px;background:var(--bg)">
+                        <form method="post" action="/members/planning-tools.cfm" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+                            <input type="hidden" name="action" value="update_deposit">
+                            <input type="hidden" name="budgetItemId" value="#budget_item_id#">
+                            <div class="field" style="margin:0;flex:1;min-width:180px">
+                                <label style="font-size:11px">Deposit Paid ($) <span style="color:var(--text-muted);font-weight:400">max $#numberFormat(estimated_cost,'999,999.00')#</span></label>
+                                <input type="number" name="depositPaid" value="#deposit_paid#" min="0" max="#estimated_cost#" step="0.01" autofocus
+                                    style="font-size:15px;font-weight:600" required>
+                            </div>
+                            <div style="display:flex;gap:8px;padding-bottom:2px">
+                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                <a href="planning-tools.cfm##budget" class="btn btn-ghost btn-sm">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                    </cfif>
                 </div>
             </cfoutput>
+        </div>
         <cfelse>
             <div class="empty-state">
                 <i data-lucide="dollar-sign" style="width:40px;height:40px;color:var(--border);margin-bottom:12px"></i>
@@ -460,7 +605,7 @@
             <p style="font-size:13px;font-weight:600;margin-bottom:8px">How it works:</p>
             <ol style="font-size:13px;color:var(--text-muted);padding-left:18px;line-height:1.9">
                 <li>Choose a <strong style="color:var(--text)">timeline period</strong> from the dropdown below (e.g. "12+ Months Before").</li>
-                <li>A list of suggested tasks will appear — <strong style="color:var(--text)">check the ones you want</strong>, or click "Select All".</li>
+                <li>A list of suggested tasks will appear &mdash; <strong style="color:var(--text)">check the ones you want</strong>, or click "Select All".</li>
                 <li>Click <strong style="color:var(--text)">"Add Tasks to My Checklist"</strong> and they'll appear in your checklist below.</li>
                 <li>Repeat for each timeline period as your wedding date approaches.</li>
                 <li>Use the <strong style="color:var(--text)">checklist below</strong> to mark tasks complete as you go!</li>

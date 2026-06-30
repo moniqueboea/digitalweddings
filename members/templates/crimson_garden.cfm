@@ -1,5 +1,5 @@
 <!---
-  crimson_garden.cfm — watercolor floral, white & burgundy
+  crimson_garden.cfm - watercolor floral, white & burgundy
   Palette: white #FDFCFB, blush #F5E8E6, burgundy #7B2835, wine #4A1020, sage #7A9B6A, taupe #9C8078
 --->
 <cfset weddingDateFull = "">
@@ -12,6 +12,18 @@
   <cfset weddingDayMonth = dateFormat(_d,"mmmm d")>
   <cfset weddingYear     = dateFormat(_d,"yyyy")>
 <cfcatch><cfset weddingDateFull = site.wedding_date></cfcatch>
+</cftry>
+</cfif>
+
+<!--- Countdown: days until wedding --->
+<cfset cdDaysUntil = 0>
+<cfset cdIsFuture = false>
+<cfif len(trim(site.wedding_date))>
+<cftry>
+  <cfset _wdToday = createDate(year(now()),month(now()),day(now()))>
+  <cfset cdDaysUntil = dateDiff("d", _wdToday, parseDateTime(site.wedding_date))>
+  <cfset cdIsFuture = (cdDaysUntil GT 0)>
+<cfcatch><cfset cdDaysUntil = 0></cfcatch>
 </cftry>
 </cfif>
 
@@ -48,7 +60,7 @@ body{background:var(--white);color:var(--wine);font-family:'Jost',sans-serif;fon
 /* ---- HERO ---- */
 .hero{background:var(--white);position:relative;text-align:center;display:flex;flex-direction:column;justify-content:flex-start}
 
-/* Top watercolor image — full width below nav */
+/* Top watercolor image - full width below nav */
 .hero-top-floral{display:block;width:100%;height:420px;object-fit:contain;object-position:right top;background:var(--white)}
 
 /* NAV */
@@ -175,6 +187,25 @@ footer .credit{font-size:1.1rem;font-weight:500;font-weight:500;color:rgba(74,16
     <cfif len(trim(site.things_to_do)) OR arrayLen(thingsLinks)><a href="#things_to_do">Things to Do</a></cfif>
   </div>
 </nav>
+
+<cfoutput>
+<cfif cdIsFuture>
+<div style="text-align:center;padding:18px 24px;border-bottom:1px solid rgba(0,0,0,0.1);font-family:'Jost',sans-serif">
+  <span style="font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:##7A9B6A">Countdown</span>
+  <div style="margin:6px 0;display:flex;align-items:baseline;justify-content:center;gap:8px">
+    <span style="font-size:2.4rem;font-weight:700;color:##7A9B6A;line-height:1">#cdDaysUntil#</span>
+    <span style="font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(30,20,10,0.75);opacity:.7">#cdDaysUntil EQ 1 ? 'day' : 'days'# to go</span>
+  </div>
+  <cfif len(weddingDateFull)><span style="font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(30,20,10,0.75);opacity:.5">#weddingDateFull#</span></cfif>
+</div>
+</cfif>
+<cfif cdDaysUntil EQ 0 AND len(trim(site.wedding_date))>
+<div style="text-align:center;padding:16px 24px;border-bottom:1px solid rgba(0,0,0,0.1);font-family:'Jost',sans-serif">
+  <span style="font-size:.68rem;letter-spacing:.35em;text-transform:uppercase;color:##7A9B6A">Today Is The Day</span>
+</div>
+</cfif>
+</cfoutput>
+
 
 <!--- TOP FLORAL: full width --->
 <div style="line-height:0;overflow:hidden">
@@ -405,7 +436,7 @@ window.addEventListener('scroll',function(){
 </script>
 
 <!-- Back to top button -->
-<button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="backToTop" aria-label="Back to top" style="display:none;position:fixed;bottom:28px;right:28px;z-index:9000;width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(0,0,0,0.55);color:#fff;font-size:20px;line-height:44px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.25);transition:opacity .2s,background .2s" onmouseover="this.style.background='rgba(0,0,0,0.75)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">&#8679;</button>
+<button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="backToTop" aria-label="Back to top" style="display:none;position:fixed;bottom:28px;right:28px;z-index:9000;width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(0,0,0,0.55);color:#fff;font-size:20px;line-height:44px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.25);transition:opacity .2s,background .2s" onmouseover="this.style.background='rgba(0,0,0,0.75)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">&uarr;</button>
 <script>
 (function(){
   var btn=document.getElementById('backToTop');

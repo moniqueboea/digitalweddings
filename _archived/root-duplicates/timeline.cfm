@@ -96,7 +96,7 @@
         </div>
     <cfelse>
         <div class="empty-state">
-            <div style="font-size:48px;margin-bottom:16px">&#9200;</div>
+            <div style="font-size:48px;margin-bottom:16px">&##9200;</div>
             <p>No timeline events yet. Start building your wedding day schedule above!</p>
         </div>
     </cfif>

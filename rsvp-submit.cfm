@@ -38,7 +38,7 @@
     <cflocation url="/rsvp.cfm?slug=#URLEncodedFormat(slug)#&error=notfound" addToken="false">
 </cfif>
 
-<!--- Already RSVPd — ask to confirm update unless they already confirmed --->
+<!--- Already RSVPd - ask to confirm update unless they already confirmed --->
 <cfif form.confirmUpdate NEQ "1" AND qGuest.rsvp_status NEQ "pending">
     <cflocation url="/rsvp.cfm?slug=#URLEncodedFormat(slug)#&alreadyrsvp=1&currentstatus=#URLEncodedFormat(qGuest.rsvp_status)#&email=#URLEncodedFormat(guestEmail)#" addToken="false">
 </cfif>

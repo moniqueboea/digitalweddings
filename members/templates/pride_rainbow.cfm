@@ -1,6 +1,7 @@
 <!---
-  aka_inspired.cfm — Ivy & Pearls, bordeaux_rose structure
-  Palette: deep green #0F3D22, forest #1A6B3C, blush #FDF5F8, pink #D4478A
+  pride_rainbow.cfm — Full-bleed hero image, rainbow Pride accents
+  Palette: dark #0D0D1A, charcoal #12122A, cream #FAFAFA,
+           red #E8373A, orange #F4831F, yellow #FBBF24, green #22A55B, blue #1D6FB5, violet #7B3FBE
 --->
 <cfset weddingDateFull = "">
 <cfset weddingDayMonth = "">
@@ -12,6 +13,17 @@
   <cfset weddingDayMonth = dateFormat(_d,"mmmm d")>
   <cfset weddingYear     = dateFormat(_d,"yyyy")>
 <cfcatch><cfset weddingDateFull = site.wedding_date></cfcatch>
+</cftry>
+</cfif>
+
+<cfset cdDaysUntil = 0>
+<cfset cdIsFuture = false>
+<cfif len(trim(site.wedding_date))>
+<cftry>
+  <cfset _wdToday = createDate(year(now()),month(now()),day(now()))>
+  <cfset cdDaysUntil = dateDiff("d", _wdToday, parseDateTime(site.wedding_date))>
+  <cfset cdIsFuture = (cdDaysUntil GT 0)>
+<cfcatch><cfset cdDaysUntil = 0></cfcatch>
 </cftry>
 </cfif>
 
@@ -38,37 +50,48 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><cfoutput>#HTMLEditFormat(site.couple_name_1)# &amp; #HTMLEditFormat(site.couple_name_2)#</cfoutput></title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Great+Vibes&family=Nunito:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-:root{--black:#0A1F12;--charcoal:#0F2D1A;--cream:#FDF5F8;--green:#1A6B3C;--pink:#D4478A;--muted:rgba(253,245,248,.5)}
+:root{
+  --dark:#0D0D1A;
+  --charcoal:#12122A;
+  --cream:#FAFAFA;
+  --muted:rgba(250,250,250,.5);
+  --red:#E8373A;
+  --orange:#F4831F;
+  --yellow:#FBBF24;
+  --green:#22A55B;
+  --blue:#1D6FB5;
+  --violet:#7B3FBE;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{background:var(--black);color:var(--cream);font-family:'Jost',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden}
+body{background:var(--dark);color:var(--cream);font-family:'Nunito',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden}
 
 /* ---- HERO ---- */
 .hero{position:relative;height:70vh;min-height:520px;overflow:hidden;display:flex;flex-direction:column}
 .hero-img{position:absolute;inset:0}
 .hero-img img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,.25) 40%,rgba(0,0,0,.75) 100%)}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.5) 0%,rgba(0,0,0,.2) 40%,rgba(0,0,0,.75) 100%)}
+/* Rainbow stripe at very top of hero */
+.hero-stripe{position:absolute;top:0;left:0;right:0;height:6px;z-index:5;background:linear-gradient(to right,var(--red) 0% 16.66%,var(--orange) 16.66% 33.33%,var(--yellow) 33.33% 50%,var(--green) 50% 66.66%,var(--blue) 66.66% 83.33%,var(--violet) 83.33% 100%)}
 
 /* ---- NAV overlaid on hero ---- */
 .hero-nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0;padding:28px 24px 0}
-.hero-nav a{color:rgba(253,245,248,.75);text-decoration:none;font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;font-family:'Jost',sans-serif;font-weight:300;padding:10px 16px;border-bottom:1px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap}
-.hero-nav a:hover,.hero-nav a.active{color:var(--cream);border-bottom-color:var(--pink)}
+.hero-nav a{color:rgba(250,250,250,.75);text-decoration:none;font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;font-family:'Nunito',sans-serif;font-weight:400;padding:10px 16px;border-bottom:1px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap}
+.hero-nav a:hover,.hero-nav a.active{color:var(--cream);border-bottom-color:var(--yellow)}
 
 /* ---- HERO TEXT ---- */
 .hero-text{position:relative;z-index:10;margin-top:auto;padding:0 48px 56px;display:flex;flex-direction:column;align-items:center;text-align:center}
-.hero-couple{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(3rem,7vw,6rem);font-weight:300;color:var(--cream);line-height:1.05;letter-spacing:.01em}
+.hero-couple{font-family:'Great Vibes',cursive;font-size:clamp(3rem,7vw,6rem);color:var(--cream);line-height:1.05}
 .hero-meta{margin-top:18px;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
-.hero-date-line{font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(253,245,248,.6);font-family:'Jost',sans-serif}
-.hero-dot{width:3px;height:3px;border-radius:50%;background:var(--pink);flex-shrink:0}
-.hero-venue-line{font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(253,245,248,.5);font-family:'Jost',sans-serif}
+.hero-date-line{font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(250,250,250,.65);font-family:'Nunito',sans-serif}
+.hero-dot{width:4px;height:4px;border-radius:50%;background:var(--yellow);flex-shrink:0}
+.hero-venue-line{font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(250,250,250,.5);font-family:'Nunito',sans-serif}
 
-@media(max-width:600px){
-  .hero-text{padding:0 24px 40px}
-  .hero-couple{font-size:2.8rem}
-  .hero-nav a{font-size:.68rem;padding:8px 10px}
-}
+/* Rainbow rule used throughout */
+.rainbow-rule{display:flex;height:3px;max-width:180px;margin-top:16px;border-radius:2px;overflow:hidden}
+.rainbow-rule span{flex:1}
 
 /* ---- SECTIONS ---- */
 .section{padding:80px 48px;max-width:900px;margin:0 auto}
@@ -76,25 +99,28 @@ body{background:var(--black);color:var(--cream);font-family:'Jost',sans-serif;fo
 .section-dark .inner{max-width:900px;margin:0 auto}
 
 .section-title{margin-bottom:48px}
-.section-title .eyebrow{font-size:.75rem;letter-spacing:.25em;text-transform:uppercase;color:var(--pink);display:block;margin-bottom:12px;font-family:'Jost',sans-serif}
-.section-title h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(2rem,4vw,3rem);font-weight:300;color:var(--cream);letter-spacing:.03em}
-.green-rule{width:40px;height:1px;background:var(--green);margin-top:16px;opacity:.8}
+.section-title .eyebrow{font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;display:block;margin-bottom:12px;font-family:'Nunito',sans-serif;font-weight:600;
+  background:linear-gradient(90deg,var(--violet),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.section-title h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(2rem,4vw,3rem);font-weight:300;color:var(--cream);letter-spacing:.03em;font-style:italic}
 
 /* ---- DETAILS ---- */
-.details-grid{display:flex;flex-wrap:wrap;gap:1px;background:rgba(26,107,60,.3);max-width:860px;margin:0 auto}
+.details-grid{display:flex;flex-wrap:wrap;gap:1px;background:rgba(123,63,190,.3);max-width:860px;margin:0 auto}
 .detail-block{flex:1;min-width:150px;padding:48px 32px;background:var(--charcoal);text-align:center}
-.detail-block .lbl{font-size:.75rem;letter-spacing:.22em;text-transform:uppercase;color:var(--pink);margin-bottom:14px;display:block;font-family:'Jost',sans-serif}
+.detail-block .lbl{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:14px;display:block;font-family:'Nunito',sans-serif;font-weight:600;
+  background:linear-gradient(90deg,var(--orange),var(--yellow));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .detail-block .val{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.7rem;font-weight:300;color:var(--cream);line-height:1.25;font-style:italic}
 .detail-block .sub{font-size:.78rem;color:var(--muted);margin-top:8px}
 
 /* ---- STORY ---- */
-.story-body{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.25rem;font-weight:300;line-height:2;color:rgba(253,245,248,.85);white-space:pre-wrap;font-style:italic;max-width:640px}
+.story-body{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.25rem;font-weight:300;line-height:2;color:rgba(250,250,250,.85);white-space:pre-wrap;font-style:italic;max-width:640px}
 
 /* ---- GALLERY ---- */
 .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:3px}
 .g-photo{aspect-ratio:1;overflow:hidden;cursor:pointer;border-radius:10px}
-.g-photo img{width:100%;height:100%;object-fit:cover;transition:transform .5s,filter .4s;filter:saturate(.8) brightness(.95)}
-.g-photo:hover img{transform:scale(1.05);filter:saturate(1) brightness(1.05)}
+.g-photo img{width:100%;height:100%;object-fit:cover;transition:transform .5s,filter .4s;filter:saturate(.85) brightness(.95)}
+.g-photo:hover img{transform:scale(1.05);filter:saturate(1.1) brightness(1.05)}
 
 /* ---- FAQ ---- */
 .faq-list{display:flex;flex-direction:column;gap:1px;max-width:680px}
@@ -103,52 +129,66 @@ body{background:var(--black);color:var(--cream);font-family:'Jost',sans-serif;fo
 .faq-item .a{font-size:.95rem;color:var(--muted);line-height:1.9}
 
 /* ---- TEXT BLOCKS ---- */
-.text-body{font-size:1rem;color:rgba(253,245,248,.75);line-height:2;white-space:pre-wrap;max-width:620px}
-.link-btn{display:inline-block;margin-top:24px;padding:13px 36px;border:1px solid var(--green);color:var(--green);text-decoration:none;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;font-family:'Jost',sans-serif;transition:background .2s,color .2s}
-.link-btn:hover{background:var(--green);color:var(--black)}
+.text-body{font-size:1rem;color:rgba(250,250,250,.75);line-height:2;white-space:pre-wrap;max-width:620px}
+.link-btn{display:inline-block;margin-top:24px;padding:13px 36px;border:1px solid var(--violet);color:var(--violet);text-decoration:none;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;font-family:'Nunito',sans-serif;font-weight:600;transition:background .2s,color .2s}
+.link-btn:hover{background:var(--violet);color:var(--cream)}
 
 /* ---- RSVP ---- */
 .rsvp-section{text-align:center;padding:120px 24px;position:relative;overflow:hidden}
 .rsvp-section .bg{position:absolute;inset:0}
-.rsvp-section .bg img{width:100%;height:100%;object-fit:cover;filter:brightness(.2) saturate(.5)}
+.rsvp-section .bg img{width:100%;height:100%;object-fit:cover;filter:brightness(.15) saturate(.4)}
+.rsvp-section .bg-fallback{width:100%;height:100%;background:var(--charcoal)}
+.rsvp-section::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;z-index:2;background:linear-gradient(to right,var(--red) 0% 16.66%,var(--orange) 16.66% 33.33%,var(--yellow) 33.33% 50%,var(--green) 50% 66.66%,var(--blue) 66.66% 83.33%,var(--violet) 83.33% 100%)}
 .rsvp-section .content{position:relative;z-index:2}
-.rsvp-section .eyebrow{font-size:.75rem;letter-spacing:.25em;text-transform:uppercase;color:var(--pink);display:block;margin-bottom:16px}
-.rsvp-section h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(2.2rem,5vw,3.8rem);font-weight:300;color:var(--cream);margin-bottom:16px;letter-spacing:.03em}
+.rsvp-section .eyebrow{font-size:.75rem;letter-spacing:.25em;text-transform:uppercase;display:block;margin-bottom:16px;
+  background:linear-gradient(90deg,var(--yellow),var(--orange));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600}
+.rsvp-section h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(2.2rem,5vw,3.8rem);font-weight:300;color:var(--cream);margin-bottom:16px;letter-spacing:.03em;font-style:italic}
 .rsvp-section p{color:var(--muted);margin-bottom:44px;max-width:420px;margin-left:auto;margin-right:auto;font-size:.9rem;line-height:1.9}
-.rsvp-btn{display:inline-block;padding:16px 56px;border:1px solid var(--cream);color:var(--cream);font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;text-decoration:none;font-family:'Jost',sans-serif;transition:background .25s,color .25s}
-.rsvp-btn:hover{background:var(--cream);color:var(--black)}
+.rsvp-btn{display:inline-block;padding:16px 56px;border:1px solid var(--cream);color:var(--cream);font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:600;transition:background .25s,color .25s}
+.rsvp-btn:hover{background:var(--cream);color:var(--dark)}
 
 /* ---- FOOTER ---- */
-footer{text-align:center;padding:70px 24px;border-top:1px solid rgba(255,255,255,.08)}
-footer .names{font-family:'Cormorant Garamond',Georgia,serif;font-size:2.4rem;font-weight:300;color:var(--cream);letter-spacing:.05em;margin-bottom:8px}
+footer{text-align:center;padding:70px 24px;border-top:1px solid rgba(255,255,255,.07)}
+footer .names{font-family:'Great Vibes',cursive;font-size:2.6rem;color:var(--cream);margin-bottom:8px}
 footer .date{font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}
-footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
+footer .rainbow-bar{display:flex;height:3px;max-width:120px;margin:16px auto 0;border-radius:2px;overflow:hidden}
+footer .rainbow-bar span{flex:1}
+footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:20px}
 
 /* ---- DIVIDER ---- */
-.divider{width:100%;height:1px;background:rgba(255,255,255,.07);margin:0}
+.divider{width:100%;height:5px;background:linear-gradient(to right,var(--red) 0% 16.66%,var(--orange) 16.66% 33.33%,var(--yellow) 33.33% 50%,var(--green) 50% 66.66%,var(--blue) 66.66% 83.33%,var(--violet) 83.33% 100%)}
 
 /* ---- LIGHTBOX ---- */
 #lightbox{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
 #lightbox.show{display:flex}
 #lightbox img{max-height:85vh;max-width:90vw;border-radius:2px;object-fit:contain}
-#lightbox button{position:absolute;background:rgba(255,255,255,.08);border:none;color:var(--cream);border-radius:0;cursor:pointer;font-family:'Jost',sans-serif}
+#lightbox button{position:absolute;background:rgba(255,255,255,.08);border:none;color:var(--cream);cursor:pointer}
 #lightbox .nav-btn{width:52px;height:52px;font-size:1.8rem;top:50%;transform:translateY(-50%)}
 #lightbox .prev{left:20px}
 #lightbox .next{right:20px}
 #lightbox .close-lb{top:16px;right:16px;width:40px;height:40px;font-size:1.1rem}
 #lightbox .count{position:absolute;bottom:20px;color:rgba(255,255,255,.3);font-size:.75rem;letter-spacing:.1em}
+
+@media(max-width:600px){
+  .hero-text{padding:0 24px 40px}
+  .hero-couple{font-size:2.8rem}
+  .hero-nav a{font-size:.68rem;padding:8px 10px}
+  .section{padding:64px 24px}
+  .section-dark{padding:64px 24px}
+}
 </style>
 </head>
 <body>
 
 <cfif structKeyExists(site,"is_preview") AND site.is_preview>
-<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#111;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;font-family:Arial,sans-serif;font-size:13px;border-bottom:1px solid #333;gap:12px">
+<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#0D0D1A;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;font-family:Arial,sans-serif;font-size:13px;border-bottom:1px solid #222;gap:12px">
   <cfif isNumeric(url.siteId) AND url.siteId GT 0>
   <span style="opacity:.75">&#128065; Previewing your wedding site</span>
   <button onclick="window.close()" style="padding:8px 20px;background:#333;color:#fff;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px">&times; Close Preview</button>
   <cfelse>
   <span style="opacity:.75">&#128065; Template preview &mdash; sample data shown</span>
-  <a href="/members/wedding-site-edit.cfm?template=aka_inspired" style="padding:8px 20px;background:#1A6B3C;color:#fff;border-radius:4px;font-weight:600;text-decoration:none;white-space:nowrap">Use This Template &rarr;</a>
+  <a href="/members/wedding-site-edit.cfm?template=pride_rainbow" style="padding:8px 20px;background:#7B3FBE;color:#fff;border-radius:4px;font-weight:600;text-decoration:none;white-space:nowrap">Use This Template &rarr;</a>
   </cfif>
 </div>
 <div style="height:48px"></div>
@@ -156,11 +196,12 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
 
 <!--- HERO --->
 <div class="hero">
+  <div class="hero-stripe"></div>
   <div class="hero-img">
     <cfif len(heroImg)>
     <img src="<cfoutput>#HTMLEditFormat(heroImg)#</cfoutput>" alt="Wedding">
     <cfelse>
-    <img src="/assets/aka-inspired.jpg" alt="Ivy and pearls" onerror="this.style.display='none'">
+    <img src="/assets/pride-rainbow.jpg" alt="Pride Rainbow" onerror="this.style.display='none'">
     </cfif>
   </div>
   <div class="hero-overlay"></div>
@@ -177,10 +218,33 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
     <cfif len(trim(site.things_to_do)) OR arrayLen(thingsLinks)><a href="#things_to_do">Things to Do</a></cfif>
   </nav>
 
+<cfoutput>
+<cfif cdIsFuture>
+<div style="position:relative;z-index:10;text-align:center;padding:18px 24px;border-bottom:1px solid rgba(255,255,255,0.12);font-family:'Nunito',sans-serif">
+  <span style="font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:##FBBF24">Countdown</span>
+  <div style="margin:6px 0;display:flex;align-items:baseline;justify-content:center;gap:8px">
+    <span style="font-size:2.4rem;font-weight:700;color:##FBBF24;line-height:1">#cdDaysUntil#</span>
+    <span style="font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,0.75)">#cdDaysUntil EQ 1 ? 'day' : 'days'# to go</span>
+  </div>
+  <cfif len(weddingDateFull)><span style="font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.5)">#weddingDateFull#</span></cfif>
+</div>
+</cfif>
+<cfif cdDaysUntil EQ 0 AND len(trim(site.wedding_date))>
+<div style="position:relative;z-index:10;text-align:center;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.12);font-family:'Nunito',sans-serif">
+  <span style="font-size:.68rem;letter-spacing:.35em;text-transform:uppercase;color:##FBBF24">Today Is The Day</span>
+</div>
+</cfif>
+</cfoutput>
+
   <div class="hero-text">
     <cfset couplePhoto = structKeyExists(site,"couple_photo_url") ? trim(site.couple_photo_url) : "">
     <cfset couplePhotoSrc = len(couplePhoto) ? couplePhoto : "/assets/couple-placeholder.jpg">
-    <img src="<cfoutput>#HTMLEditFormat(couplePhotoSrc)#</cfoutput>" alt="Couple photo" style="width:130px;height:130px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.5);box-shadow:0 4px 24px rgba(0,0,0,.5);display:block;margin-bottom:22px">
+    <img src="<cfoutput>#HTMLEditFormat(couplePhotoSrc)#</cfoutput>" alt="Couple photo"
+      style="width:130px;height:130px;border-radius:50%;object-fit:cover;
+             border:4px solid transparent;
+             background:linear-gradient(var(--dark),var(--dark)) padding-box,
+                        linear-gradient(135deg,var(--red),var(--orange),var(--yellow),var(--green),var(--blue),var(--violet)) border-box;
+             box-shadow:0 4px 24px rgba(0,0,0,.5);display:block;margin-bottom:22px">
     <div class="hero-couple">
       <cfoutput>#HTMLEditFormat(site.couple_name_1)# &amp; #HTMLEditFormat(site.couple_name_2)#</cfoutput>
     </div>
@@ -205,7 +269,7 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
   <div class="section-title">
     <span class="eyebrow">The Beginning</span>
     <h2>Our Story</h2>
-    <div class="green-rule"></div>
+    <div class="rainbow-rule"><span style="background:var(--red)"></span><span style="background:var(--orange)"></span><span style="background:var(--yellow)"></span><span style="background:var(--green)"></span><span style="background:var(--blue)"></span><span style="background:var(--violet)"></span></div>
   </div>
   <p class="story-body"><cfoutput>#HTMLEditFormat(site.story)#</cfoutput></p>
 </section>
@@ -218,7 +282,7 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
     <div class="section-title">
       <span class="eyebrow">Celebration Details</span>
       <h2>Join Us</h2>
-      <div class="green-rule"></div>
+      <div class="rainbow-rule"><span style="background:var(--red)"></span><span style="background:var(--orange)"></span><span style="background:var(--yellow)"></span><span style="background:var(--green)"></span><span style="background:var(--blue)"></span><span style="background:var(--violet)"></span></div>
     </div>
   </div>
   <div class="details-grid">
@@ -251,9 +315,9 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
 <div class="divider"></div>
 <section id="photos" style="padding:80px 48px;max-width:1100px;margin:0 auto">
   <div class="section-title">
-    <span class="eyebrow">Memories Together</span>
+    <span class="eyebrow">Captured Moments</span>
     <h2>Photos</h2>
-    <div class="green-rule"></div>
+    <div class="rainbow-rule"><span style="background:var(--red)"></span><span style="background:var(--orange)"></span><span style="background:var(--yellow)"></span><span style="background:var(--green)"></span><span style="background:var(--blue)"></span><span style="background:var(--violet)"></span></div>
   </div>
   <div class="gallery-grid">
     <cfloop from="1" to="#arrayLen(galleryList)#" index="gi">
@@ -273,7 +337,7 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
     <div class="section-title">
       <span class="eyebrow">Good to Know</span>
       <h2>Q &amp; A</h2>
-      <div class="green-rule"></div>
+      <div class="rainbow-rule"><span style="background:var(--red)"></span><span style="background:var(--orange)"></span><span style="background:var(--yellow)"></span><span style="background:var(--green)"></span><span style="background:var(--blue)"></span><span style="background:var(--violet)"></span></div>
     </div>
     <div class="faq-list">
       <cfloop from="1" to="#arrayLen(faqList)#" index="fi">
@@ -294,7 +358,7 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
   <div class="section-title">
     <span class="eyebrow">Attire</span>
     <h2>Dress Code</h2>
-    <div class="green-rule"></div>
+    <div class="rainbow-rule"><span style="background:var(--red)"></span><span style="background:var(--orange)"></span><span style="background:var(--yellow)"></span><span style="background:var(--green)"></span><span style="background:var(--blue)"></span><span style="background:var(--violet)"></span></div>
   </div>
   <p class="text-body"><cfoutput>#HTMLEditFormat(site.dress_code)#</cfoutput></p>
 </section>
@@ -308,7 +372,7 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
     <div class="section-title">
       <span class="eyebrow">Getting Here</span>
       <h2>Travel &amp; Accommodations</h2>
-      <div class="green-rule"></div>
+      <div class="rainbow-rule"><span style="background:var(--red)"></span><span style="background:var(--orange)"></span><span style="background:var(--yellow)"></span><span style="background:var(--green)"></span><span style="background:var(--blue)"></span><span style="background:var(--violet)"></span></div>
     </div>
     <p class="text-body"><cfoutput>#HTMLEditFormat(site.travel_info)#</cfoutput></p>
     <cfif arrayLen(travelLinks)>
@@ -329,7 +393,7 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
   <div class="section-title">
     <span class="eyebrow">While You&rsquo;re Here</span>
     <h2>Things to Do</h2>
-    <div class="green-rule"></div>
+    <div class="rainbow-rule"><span style="background:var(--red)"></span><span style="background:var(--orange)"></span><span style="background:var(--yellow)"></span><span style="background:var(--green)"></span><span style="background:var(--blue)"></span><span style="background:var(--violet)"></span></div>
   </div>
   <p class="text-body"><cfoutput>#HTMLEditFormat(site.things_to_do)#</cfoutput></p>
   <cfif arrayLen(thingsLinks)>
@@ -348,13 +412,13 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
     <cfif len(heroImg)>
     <img src="<cfoutput>#HTMLEditFormat(heroImg)#</cfoutput>" alt="">
     <cfelse>
-    <img src="/assets/aka-inspired.jpg" alt="" onerror="this.style.display='none'">
+    <img src="/assets/pride-rainbow.jpg" alt="" onerror="this.style.display='none'">
     </cfif>
   </div>
   <div class="content">
     <span class="eyebrow">You&rsquo;re Invited</span>
     <h2>Will You Join Us?</h2>
-    <p>Please let us know if you&rsquo;ll be celebrating with us.</p>
+    <p>Please let us know if you&rsquo;ll be celebrating with us on our special day.</p>
     <a href="/rsvp.cfm?slug=<cfoutput>#URLEncodedFormat(site.slug)#</cfoutput>" class="rsvp-btn">RSVP</a>
   </div>
 </section>
@@ -362,6 +426,7 @@ footer .credit{font-size:1.1rem;color:rgba(255,255,255,.12);margin-top:24px}
 <footer>
   <div class="names"><cfoutput>#HTMLEditFormat(site.couple_name_1)# &amp; #HTMLEditFormat(site.couple_name_2)#</cfoutput></div>
   <cfif len(weddingDateFull)><div class="date"><cfoutput>#weddingDateFull#</cfoutput></div></cfif>
+  <div class="rainbow-bar"><span style="background:var(--red)"></span><span style="background:var(--orange)"></span><span style="background:var(--yellow)"></span><span style="background:var(--green)"></span><span style="background:var(--blue)"></span><span style="background:var(--violet)"></span></div>
   <div class="credit">digitalweddings.love &#9829;</div>
 </footer>
 
@@ -394,7 +459,7 @@ window.addEventListener('scroll',function(){
 });
 </script>
 
-<button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="backToTop" aria-label="Back to top" style="display:none;position:fixed;bottom:28px;right:28px;z-index:9000;width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(0,0,0,0.55);color:#fff;font-size:20px;line-height:44px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.25);transition:opacity .2s,background .2s" onmouseover="this.style.background='rgba(0,0,0,0.75)'" onmouseout="this.style.background='rgba(0,0,0,0.55)'">&#8679;</button>
+<button onclick="window.scrollTo({top:0,behavior:'smooth'})" id="backToTop" aria-label="Back to top" style="display:none;position:fixed;bottom:28px;right:28px;z-index:9000;width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;font-size:20px;line-height:44px;text-align:center;box-shadow:0 4px 16px rgba(123,63,190,.4)">&uarr;</button>
 <script>
 (function(){
   var btn=document.getElementById('backToTop');

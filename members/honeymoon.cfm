@@ -43,6 +43,27 @@
 <cfset saved = structKeyExists(url,"saved") && url.saved EQ "1">
 
 <cfinclude template="../includes/layout-start.cfm">
+<style>
+@media (max-width:768px) {
+    .honeymoon-form input, .honeymoon-form select, .honeymoon-form textarea, .honeymoon-form button[type=submit] {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .honeymoon-form input[type="date"],
+    .honeymoon-form input[type="time"] {
+        -webkit-appearance: none !important;
+        appearance: none !important;
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+</style>
 <section style="padding:60px 0">
 <div class="container" style="max-width:680px">
     <div class="page-header">
@@ -53,21 +74,19 @@
     <cfif saved><div class="alert alert-success">Honeymoon details saved!</div></cfif>
 
     <div class="panel">
-        <form method="post" action="/members/honeymoon.cfm">
+        <form method="post" action="/members/honeymoon.cfm" class="honeymoon-form">
             <input type="hidden" name="action" value="save">
             <div class="field">
                 <label for="destination">Destination</label>
                 <input type="text" id="destination" name="destination" placeholder="e.g. Maldives, Jamaica, Paris" value="<cfoutput>#honeymoon.recordCount ? HTMLEditFormat(honeymoon.destination) : ''#</cfoutput>">
             </div>
-            <div class="field-row">
-                <div class="field">
-                    <label for="startDate">Departure Date</label>
-                    <input type="date" id="startDate" name="startDate" value="<cfoutput>#honeymoon.recordCount && len(honeymoon.start_date) ? dateFormat(honeymoon.start_date,'yyyy-mm-dd') : ''#</cfoutput>">
-                </div>
-                <div class="field">
-                    <label for="endDate">Return Date</label>
-                    <input type="date" id="endDate" name="endDate" value="<cfoutput>#honeymoon.recordCount && len(honeymoon.end_date) ? dateFormat(honeymoon.end_date,'yyyy-mm-dd') : ''#</cfoutput>">
-                </div>
+            <div class="field">
+                <label for="startDate">Departure Date</label>
+                <input type="date" id="startDate" name="startDate" value="<cfoutput>#honeymoon.recordCount && len(honeymoon.start_date) ? dateFormat(honeymoon.start_date,'yyyy-mm-dd') : ''#</cfoutput>">
+            </div>
+            <div class="field">
+                <label for="endDate">Return Date</label>
+                <input type="date" id="endDate" name="endDate" value="<cfoutput>#honeymoon.recordCount && len(honeymoon.end_date) ? dateFormat(honeymoon.end_date,'yyyy-mm-dd') : ''#</cfoutput>">
             </div>
             <div class="field">
                 <label for="estimatedBudget">Estimated Budget ($)</label>

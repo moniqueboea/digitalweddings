@@ -8,12 +8,12 @@
     wedding_date: "2025-09-20",
     venue_name: "The Grand Ballroom",
     venue_address: "1234 Elegance Ave, Atlanta, GA",
-    story: "We met at a friend's birthday party in the summer of 2019. Marcus walked in and Aisha couldn't take her eyes off him. They talked all night and exchanged numbers, and the rest — as they say — is history. After five beautiful years together, he got down on one knee at the same rooftop where they had their first real date.",
+    story: "We met at a friend's birthday party in the summer of 2019. Marcus walked in and Aisha couldn't take her eyes off him. They talked all night and exchanged numbers, and the rest - as they say - is history. After five beautiful years together, he got down on one knee at the same rooftop where they had their first real date.",
     dress_code: "Black tie optional. We encourage our guests to wear earth tones and jewel colors to complement our wedding palette.",
     travel_info: "We have reserved a room block at the Marriott Downtown at a special rate of $189/night. Use code AISHA-MARCUS when booking. The venue is 10 minutes from Hartsfield-Jackson Atlanta International Airport.",
     things_to_do: "Atlanta has so much to offer! Visit the National Center for Civil and Human Rights, stroll through Piedmont Park, or explore the Atlanta BeltLine. We recommend the Old Fourth Ward neighborhood for dining.",
     hero_image_url: "",
-    scripture: "Two are better than one, because they have a good return for their labor. — Ecclesiastes 4:9",
+    scripture: "Two are better than one, because they have a good return for their labor. - Ecclesiastes 4:9",
     slug: "preview",
     published: 1
 }>
@@ -54,7 +54,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Template Preview — digitalweddings.love</title>
+    <title>Template Preview - digitalweddings.love</title>
     <style>
         * { margin:0;padding:0;box-sizing:border-box; }
         html { scroll-behavior:smooth; }
@@ -79,7 +79,7 @@
 <body>
 
 <div class="preview-bar">
-    <span>&#128064; Template Preview — <strong><cfoutput>#replace(tplId,'_',' ','all')#</cfoutput></strong> (sample data)</span>
+    <span>&##128064; Template Preview - <strong><cfoutput>#replace(tplId,'_',' ','all')#</cfoutput></strong> (sample data)</span>
     <a href="/members/wedding-sites.cfm?mode=edit&template=<cfoutput>#URLEncodedFormat(tplId)#</cfoutput>">Use This Template &rarr;</a>
 </div>
 

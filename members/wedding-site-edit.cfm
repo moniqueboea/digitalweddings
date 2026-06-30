@@ -335,12 +335,12 @@
             <cfif editData.template EQ "islamic_elegance">
             <div class="ws-field" style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:14px">
                 <label class="ws-label" style="color:#92400e">Opening Dua / Blessing</label>
-                <input type="text" name="scripture" class="ws-input" style="margin-top:6px" placeholder='e.g. "And among His signs..." — Quran 30:21' value="<cfoutput>#HTMLEditFormat(editData.scripture)#</cfoutput>">
+                <input type="text" name="scripture" class="ws-input" style="margin-top:6px" placeholder='e.g. "And among His signs..." - Quran 30:21' value="<cfoutput>#HTMLEditFormat(editData.scripture)#</cfoutput>">
             </div>
             <cfelseif editData.template EQ "christian_sacred">
             <div class="ws-field" style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:14px">
                 <label class="ws-label" style="color:#92400e">Wedding Scripture</label>
-                <input type="text" name="scripture" class="ws-input" style="margin-top:6px" placeholder='e.g. "Two are better than one..." — Ecclesiastes 4:9' value="<cfoutput>#HTMLEditFormat(editData.scripture)#</cfoutput>">
+                <input type="text" name="scripture" class="ws-input" style="margin-top:6px" placeholder='e.g. "Two are better than one..." - Ecclesiastes 4:9' value="<cfoutput>#HTMLEditFormat(editData.scripture)#</cfoutput>">
             </div>
             <cfelse>
             <input type="hidden" name="scripture" value="<cfoutput>#HTMLEditFormat(editData.scripture)#</cfoutput>">

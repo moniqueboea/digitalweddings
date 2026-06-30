@@ -33,6 +33,28 @@
 </cfquery>
 
 <cfinclude template="../includes/layout-start.cfm">
+<style>
+@media (max-width:768px) {
+    .mfr { grid-template-columns: 1fr !important; }
+    .mfr input, .mfr select, .mfr textarea, .mfr button[type=submit] {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .mfr input[type="date"],
+    .mfr input[type="time"] {
+        -webkit-appearance: none !important;
+        appearance: none !important;
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+</style>
 <section style="padding:60px 0">
 <div class="container" style="max-width:800px">
     <div class="page-header">
@@ -66,7 +88,7 @@
         <p class="panel-title">Add an Event</p>
         <form method="post" action="/members/timeline.cfm">
             <input type="hidden" name="action" value="add_event">
-            <div style="display:grid;grid-template-columns:1fr 2fr 2fr auto;gap:12px;align-items:end">
+            <div class="mfr" style="display:grid;grid-template-columns:1fr 2fr 2fr auto;gap:12px;align-items:end">
                 <div class="field" style="margin-bottom:0">
                     <label>Time</label>
                     <input type="time" name="eventTime" required>

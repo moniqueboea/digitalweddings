@@ -22,7 +22,7 @@
     <cfif !len(trim(form.businessName)) OR !len(trim(form.category)) OR !len(trim(form.description)) OR !len(trim(form.location)) OR !isValid("email", trim(form.email))>
         <cfset errorMsg = "Please fill in all required fields with a valid email address.">
     <cfelseif !hasLink>
-        <cfset errorMsg = "Please enter at least one online presence — your website, Instagram, or Facebook page.">
+        <cfset errorMsg = "Please enter at least one online presence - your website, Instagram, or Facebook page.">
     <cfelseif !hasImage>
         <cfset errorMsg = "Please upload a photo of your business or work.">
     <cfelse>
@@ -79,7 +79,7 @@
         <p class="eyebrow">Complimentary Listing</p>
         <h1 style="font-size:38px;margin-bottom:8px">Claim Your <span class="script">Free Listing</span></h1>
         <div style="display:inline-block;background:#B8860B;color:#fff;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:16px">Invitation Only</div>
-        <p style="color:var(--text-muted);margin-bottom:8px">Connect with Black couples planning their perfect day. Your complimentary listing is completely free &mdash; no fees, no credit card required.</p>
+        <p style="color:var(--text-muted);margin-bottom:8px">Connect with couples planning their perfect day. Your complimentary listing is completely free &mdash; no fees, no credit card required.</p>
         <div style="background:#FFF8E6;border:1px solid #F0D080;border-radius:8px;padding:14px 18px;margin-bottom:32px;font-size:14px;color:#7A5A00">
             <strong>Important:</strong> You must register using the exact email address your invitation was sent to. Using a different email will not work.
         </div>
@@ -94,8 +94,9 @@
 
                 <div class="field">
                     <label for="email">Invitation Email Address *</label>
-                    <input type="email" id="email" name="email" required placeholder="The email your invitation was sent to" value="<cfoutput>#HTMLEditFormat(form.email)#</cfoutput>">
+                    <input type="email" id="email" name="email" required placeholder="The email your invitation was sent to" value="<cfoutput>#HTMLEditFormat(form.email)#</cfoutput>" onblur="checkInviteEmail(this.value)">
                     <small style="color:var(--text-muted);display:block;margin-top:4px">This must match the email address we sent your invitation to.</small>
+                    <div id="emailStatus" style="margin-top:6px;font-size:13px;display:none"></div>
                 </div>
 
                 <div class="field">
@@ -170,12 +171,37 @@
                 <button type="submit" class="btn btn-primary btn-lg" onclick="return validateLinks()">Claim My Free Listing</button>
             </form>
             <script>
+            function checkInviteEmail(val) {
+                val = val.trim();
+                var box = document.getElementById('emailStatus');
+                if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) { box.style.display='none'; return; }
+                box.style.display='block';
+                box.style.color='#888';
+                box.textContent='Checking…';
+                fetch('/api/check-vendor-email.cfm?email=' + encodeURIComponent(val))
+                    .then(function(r){ return r.json(); })
+                    .then(function(d){
+                        if (d.status === 'found') {
+                            box.style.color='#059669';
+                            box.innerHTML='&#10003; Great news &mdash; your invitation was found! Fill out the form below to claim your listing.';
+                        } else if (d.status === 'already_registered') {
+                            box.style.color='#d97706';
+                            box.innerHTML='&#9888; This email has already been used to register a listing.';
+                        } else {
+                            box.style.color='#cc0000';
+                            box.innerHTML='&#10007; This email was not found in our invitation list. Please use the exact email your invitation was sent to, or contact us at hello@digitalweddings.love.';
+                        }
+                    })
+                    .catch(function(){ box.style.display='none'; });
+            }
             function validateLinks() {
+                var form = document.querySelector('form');
+                if (!form.checkValidity()) { form.reportValidity(); return false; }
                 var w = document.getElementById('website').value.trim();
                 var i = document.getElementById('instagram').value.trim();
                 var f = document.getElementById('facebook').value.trim();
                 if (!w && !i && !f) {
-                    alert('Please enter at least one link — your website, Instagram, or Facebook page.');
+                    alert('Please enter at least one link - your website, Instagram, or Facebook page.');
                     return false;
                 }
                 return true;

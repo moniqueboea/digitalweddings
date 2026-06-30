@@ -1,15 +1,17 @@
 <!---
-  email-wedding-party-body.cfm — invite email sent when a wedding party member is added.
+  email-wedding-party-body.cfm - invite email sent when a wedding party member is added.
 
   Required variables set before cfinclude:
-    emailTheme      — struct from email-theme-helper.cfm
-    qSiteForEmail   — query row: couple_name_1, couple_name_2, wedding_date, slug
-    wpMemberName    — string: member's full name
-    wpRole          — string: party role (e.g. "Maid of Honor")
-    emailSiteLink   — full URL to the wedding website
+    emailTheme      - struct from email-theme-helper.cfm
+    qSiteForEmail   - query row: couple_name_1, couple_name_2, wedding_date, slug
+    wpMemberName    - string: member's full name
+    wpRole          - string: party role (e.g. "Maid of Honor")
+    emailSiteLink   - full URL to the wedding website
 --->
 <cfparam name="wpMemberName" default="">
 <cfparam name="wpRole"       default="">
+<cfparam name="wpSide"       default="">
+<cfparam name="wpMemberId"   default="0">
 <cfoutput>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,7 +54,7 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px">
     <tr>
       <td style="height:1px;background-color:#emailTheme.accentColor#;opacity:0.25;font-size:0;line-height:0">&nbsp;</td>
-      <td width="32" align="center" style="color:#emailTheme.accentColor#;font-size:18px;padding:0 10px;line-height:1;font-family:Georgia,serif">&##10022;</td>
+      <td width="32" align="center" style="color:#emailTheme.accentColor#;font-size:18px;padding:0 10px;line-height:1;font-family:Georgia,serif">✦</td>
       <td style="height:1px;background-color:#emailTheme.accentColor#;opacity:0.25;font-size:0;line-height:0">&nbsp;</td>
     </tr>
     </table>
@@ -70,8 +72,14 @@
     <!--- Message --->
     <p style="margin:0 0 28px 0;color:#emailTheme.bodyText#;font-size:17px;line-height:1.85;font-family:#emailTheme.fontStack#">
       We have something very special to ask you.
-      <strong>#HTMLEditFormat(qSiteForEmail.couple_name_1)#</strong> and
-      <strong>#HTMLEditFormat(qSiteForEmail.couple_name_2)#</strong> would be
+      <cfif wpSide EQ "Bride's Side">
+        <strong>#HTMLEditFormat(qSiteForEmail.couple_name_1)#</strong> would be
+      <cfelseif wpSide EQ "Groom's Side">
+        <strong>#HTMLEditFormat(qSiteForEmail.couple_name_2)#</strong> would be
+      <cfelse>
+        <strong>#HTMLEditFormat(qSiteForEmail.couple_name_1)#</strong> and
+        <strong>#HTMLEditFormat(qSiteForEmail.couple_name_2)#</strong> would be
+      </cfif>
       deeply honored to have you join their wedding party as
       <strong>#HTMLEditFormat(wpRole)#</strong>.
     </p>
@@ -91,6 +99,29 @@
       </cfif>
     </td></tr>
     </table>
+
+    <!--- RSVP buttons --->
+    <cfif wpMemberId GT 0>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px">
+    <tr>
+      <td align="center" style="border-radius:#emailTheme.btnRadius#;background:#emailTheme.btnBg#;padding-right:8px">
+        <a href="https://digitalweddings.love/wedding-party-rsvp.cfm?id=#wpMemberId#"
+           style="display:inline-block;padding:16px 36px;background:#emailTheme.btnBg#;color:#emailTheme.btnText#;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border-radius:#emailTheme.btnRadius#">
+          ✓ Accept
+        </a>
+      </td>
+      <td align="center" style="border-radius:#emailTheme.btnRadius#;border:2px solid #emailTheme.btnBg#">
+        <a href="https://digitalweddings.love/wedding-party-rsvp.cfm?id=#wpMemberId#"
+           style="display:inline-block;padding:14px 36px;color:#emailTheme.accentColor#;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border-radius:#emailTheme.btnRadius#">
+          Decline
+        </a>
+      </td>
+    </tr>
+    </table>
+    <p style="margin:0 0 28px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;text-align:center;color:#emailTheme.mutedText#">
+      You can also leave a personal note when you respond.
+    </p>
+    </cfif>
 
     <!--- Website button --->
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px">
@@ -121,7 +152,7 @@
   <tr><td align="center" style="background:#emailTheme.headerBg#;padding:22px 40px;border-top:1px solid #emailTheme.dividerColor#">
     <p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600">
       <a href="https://digitalweddings.love" style="color:#emailTheme.headerText#;text-decoration:none">digitalweddings.love</a>
-      <span style="color:##cc0022;margin-left:5px">&##9829;</span>
+      <span style="color:##cc0022;margin-left:5px">♥</span>
     </p>
     <p style="margin:0;color:#emailTheme.headerText#;font-size:11px;opacity:0.5;font-family:Arial,Helvetica,sans-serif">Celebrating love, one wedding at a time.</p>
   </td></tr>

@@ -1,11 +1,11 @@
 <!---
-  email-vendor-invite-body.cfm — complimentary vendor registration invite.
+  email-vendor-invite-body.cfm - complimentary vendor registration invite.
 
   Required variables:
-    vendorName      — string: vendor/business name
-    vendorCategory  — string: vendor category
-    personalMessage — string: optional personal note
-    registerLink    — full URL to register-vendor.cfm
+    vendorName      - string: vendor/business name
+    vendorCategory  - string: vendor category
+    personalMessage - string: optional personal note
+    registerLink    - full URL to register-vendor.cfm
 --->
 <cfparam name="vendorName"      default="">
 <cfparam name="vendorCategory"  default="">

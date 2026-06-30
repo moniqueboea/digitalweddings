@@ -135,6 +135,23 @@
 <cfloop query="cards"><cfif status EQ "sent"><cfset sentCount++><cfelse><cfset draftCount++></cfif></cfloop>
 
 <cfinclude template="../includes/layout-start.cfm">
+<style>
+@media (max-width:768px) {
+    .mfr { grid-template-columns: 1fr !important; }
+    .mfr input, .mfr select, .mfr textarea, .mfr button[type=submit] {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+    .tycard-desktop { display: none !important; }
+    .tycard-mobile { display: block !important; }
+}
+.tycard-mobile { display: none; }
+</style>
 <section style="padding:60px 0">
 <div class="container">
     <div class="page-header">
@@ -180,7 +197,7 @@
         <p class="panel-title">Add a Thank You Card</p>
         <form method="post" action="/members/thank-you-cards.cfm">
             <input type="hidden" name="action" value="add_card">
-            <div style="display:grid;grid-template-columns:2fr 2fr auto;gap:12px;align-items:end">
+            <div class="mfr" style="display:grid;grid-template-columns:2fr 2fr auto;gap:12px;align-items:end">
                 <div class="field" style="margin-bottom:0">
                     <label>Recipient Name</label>
                     <input type="text" name="recipientName" required placeholder="e.g. Aunt Gloria">
@@ -199,7 +216,8 @@
     </div>
 
     <cfif cards.recordCount>
-    <div class="panel" style="padding:0">
+    <!--- Desktop table --->
+    <div class="panel tycard-desktop" style="padding:0">
         <div class="table-wrap">
             <table>
                 <thead><tr><th>Recipient</th><th>Email</th><th>Status</th><th>Sent Date</th><th></th></tr></thead>
@@ -234,6 +252,42 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    <!--- Mobile cards --->
+    <div class="tycard-mobile">
+        <cfoutput query="cards">
+        <div class="panel" style="margin-bottom:12px;padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">
+                <div>
+                    <p style="font-weight:700;font-size:15px;margin-bottom:2px">#HTMLEditFormat(recipient_name)#</p>
+                    <p style="font-size:13px;color:var(--text-muted)">#HTMLEditFormat(recipient_email)#</p>
+                </div>
+                <cfif status EQ "sent"><span class="badge badge-green">Sent</span><cfelse><span class="badge badge-amber">Draft</span></cfif>
+            </div>
+            <cfif len(sent_date)>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Sent #dateFormat(sent_date,'mmm d, yyyy')#</p>
+            </cfif>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <form method="post" action="/members/thank-you-cards.cfm" style="flex:1">
+                    <input type="hidden" name="action" value="send_test">
+                    <input type="hidden" name="cardId" value="#thank_you_card_id#">
+                    <button type="submit" class="btn btn-ghost btn-sm" style="width:100%">Test</button>
+                </form>
+                <cfif status NEQ "sent">
+                <form method="post" action="/members/thank-you-cards.cfm" style="flex:1">
+                    <input type="hidden" name="action" value="send_card">
+                    <input type="hidden" name="cardId" value="#thank_you_card_id#">
+                    <button type="submit" class="btn btn-primary btn-sm" style="width:100%" data-name="#HTMLEditFormat(recipient_name)#" onclick="return confirm('Send this thank you card to ' + this.dataset.name + '?')">Send</button>
+                </form>
+                </cfif>
+                <form method="post" action="/members/thank-you-cards.cfm">
+                    <input type="hidden" name="action" value="delete_card">
+                    <input type="hidden" name="cardId" value="#thank_you_card_id#">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this card?')">&times;</button>
+                </form>
+            </div>
+        </div>
+        </cfoutput>
     </div>
     <cfelse>
         <div class="empty-state">

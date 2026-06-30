@@ -74,15 +74,17 @@
         <cflocation url="save-the-date.cfm?error=duplicate" addToken="false">
     </cfif>
     <cfset senderName = trim(qSite.couple_name_1) & " & " & trim(qSite.couple_name_2)>
+    <cfset tokenHash = lCase(replace(createUUID(),"-","","all")) & lCase(replace(createUUID(),"-","","all"))>
     <cfquery datasource="#application.config.datasource#">
-        INSERT INTO dbo.SaveTheDates (user_id, wedding_site_id, recipient_name, recipient_email, sender_name, rsvp_status)
+        INSERT INTO dbo.SaveTheDates (user_id, wedding_site_id, recipient_name, recipient_email, sender_name, rsvp_status, token_hash)
         VALUES (
             <cfqueryparam value="#userId#"                cfsqltype="cf_sql_bigint">,
             <cfqueryparam value="#qSite.wedding_site_id#" cfsqltype="cf_sql_bigint">,
             <cfqueryparam value="#rName#"                 cfsqltype="cf_sql_nvarchar">,
             <cfqueryparam value="#rEmail#"                cfsqltype="cf_sql_varchar">,
             <cfqueryparam value="#senderName#"            cfsqltype="cf_sql_nvarchar">,
-            'pending'
+            'pending',
+            <cfqueryparam value="#tokenHash#"             cfsqltype="cf_sql_varchar">
         )
     </cfquery>
     <cflocation url="save-the-date.cfm" addToken="false">
@@ -270,6 +272,37 @@
 </cfloop>
 
 <cfinclude template="../includes/layout-start.cfm">
+<style>
+.std-desktop { display: block; }
+.std-mobile  { display: none; }
+@media (max-width:768px) {
+    .std-form-grid { grid-template-columns: 1fr !important; }
+    .std-form-grid input, .std-form-grid select, .std-form-grid textarea,
+    .std-form-grid button, .std-form-grid .btn {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+    .std-form-grid > div[style*="display:flex"] { flex-direction: column !important; }
+    div.std-desktop { display: none !important; }
+    div.std-mobile  { display: block !important; }
+}
+</style>
+<script>
+(function(){
+    function applyLayout(){
+        var isM = window.innerWidth <= 768;
+        document.querySelectorAll('.std-desktop').forEach(function(el){ el.style.display = isM ? 'none' : ''; });
+        document.querySelectorAll('.std-mobile').forEach(function(el){ el.style.display = isM ? 'block' : 'none'; });
+    }
+    applyLayout();
+    window.addEventListener('resize', applyLayout);
+})();
+</script>
 <section style="padding:60px 0">
 <div class="container">
     <div class="page-header">
@@ -361,7 +394,7 @@
         </div>
         <div class="panel" style="margin-bottom:24px">
             <p class="panel-title">Add a Recipient</p>
-            <div style="display:grid;grid-template-columns:2fr 2fr auto;gap:12px;align-items:end">
+            <div style="display:grid;grid-template-columns:2fr 2fr auto;gap:12px;align-items:end" class="std-form-grid">
                 <div class="field" style="margin-bottom:0"><label>Guest Name *</label><input type="text" disabled placeholder="e.g. Aunt Gloria"></div>
                 <div class="field" style="margin-bottom:0"><label>Email Address *</label><input type="email" disabled placeholder="gloria@email.com"></div>
                 <button type="button" class="btn btn-primary" disabled>Add</button>
@@ -387,7 +420,7 @@
         <div class="stat-card"><div class="stat-num" style="color:##d97706"><cfoutput>#pendingCount#</cfoutput></div><div class="stat-label">Pending</div></div>
     </div>
 
-    <!--- Test button — always visible once canSend --->
+    <!--- Test button - always visible once canSend --->
     <cfif canSend>
     <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center">
         <form method="post" action="/members/save-the-date.cfm" style="display:inline">
@@ -410,7 +443,7 @@
         <form method="post" action="/members/save-the-date.cfm">
             <input type="hidden" name="action" value="edit_recipient">
             <cfoutput><input type="hidden" name="stdId" value="#editRow.id#"></cfoutput>
-            <div style="display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:12px;align-items:end">
+            <div class="std-form-grid" style="display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:12px;align-items:end">
                 <div class="field" style="margin-bottom:0">
                     <label>Guest Name *</label>
                     <cfoutput><input type="text" name="recipientName" required value="#HTMLEditFormat(editRow.name)#"></cfoutput>
@@ -439,7 +472,7 @@
         <p class="panel-title">Add a Recipient</p>
         <form method="post" action="/members/save-the-date.cfm">
             <input type="hidden" name="action" value="add_recipient">
-            <div style="display:grid;grid-template-columns:2fr 2fr auto;gap:12px;align-items:end">
+            <div style="display:grid;grid-template-columns:2fr 2fr auto;gap:12px;align-items:end" class="std-form-grid">
                 <div class="field" style="margin-bottom:0">
                     <label>Guest Name *</label>
                     <input type="text" name="recipientName" required placeholder="e.g. Aunt Gloria">
@@ -456,7 +489,8 @@
 
     <!--- Recipient table --->
     <cfif qList.recordCount>
-    <div class="panel" style="padding:0">
+    <!--- Desktop --->
+    <div class="panel std-desktop" style="padding:0">
         <div class="table-wrap">
             <table>
                 <thead>
@@ -500,6 +534,45 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    <!--- Mobile cards --->
+    <div class="std-mobile">
+        <cfoutput query="qList">
+        <div class="panel" style="margin-bottom:12px;padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+                <div>
+                    <p style="font-weight:700;font-size:15px;margin-bottom:2px">#HTMLEditFormat(recipient_name)#</p>
+                    <p style="font-size:13px;color:var(--text-muted)">#HTMLEditFormat(recipient_email)#</p>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                    <cfif rsvp_status EQ "attending"><span class="badge badge-green">Yes</span>
+                    <cfelseif rsvp_status EQ "declined"><span class="badge badge-gray">No</span>
+                    <cfelse><span class="badge badge-amber">Pending</span>
+                    </cfif>
+                    <cfif len(sent_at)><span class="badge badge-green">Sent</span>
+                    <cfelse><span class="badge badge-amber">Not sent</span>
+                    </cfif>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+                <cfif canSend AND !len(sent_at)>
+                <form method="post" action="/members/save-the-date.cfm">
+                    <input type="hidden" name="action" value="send_one">
+                    <input type="hidden" name="stdId" value="#save_the_date_id#">
+                    <button type="submit" class="btn btn-primary btn-sm" style="width:100%"
+                            data-name="#HTMLEditFormat(recipient_name)#"
+                            onclick="return confirm('Send Save the Date to ' + this.dataset.name + '?')">Send</button>
+                </form>
+                </cfif>
+                <a href="/members/save-the-date.cfm?edit=#save_the_date_id#" class="btn btn-ghost btn-sm" style="width:100%;text-align:center;box-sizing:border-box">Edit</a>
+                <form method="post" action="/members/save-the-date.cfm">
+                    <input type="hidden" name="action" value="delete_recipient">
+                    <input type="hidden" name="stdId" value="#save_the_date_id#">
+                    <button type="submit" class="btn btn-danger btn-sm" style="width:100%" onclick="return confirm('Remove this recipient?')">Remove</button>
+                </form>
+            </div>
+        </div>
+        </cfoutput>
     </div>
     <cfelse>
     <div class="empty-state">

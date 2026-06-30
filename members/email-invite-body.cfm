@@ -1,13 +1,13 @@
 <!---
-  email-invite-body.cfm — shared email HTML for all invite/resend/preview sends.
+  email-invite-body.cfm - shared email HTML for all invite/resend/preview sends.
 
   Required variables set before cfinclude:
-    emailTheme   — struct from email-theme-helper.cfm
-    qSiteForEmail — query row: couple_name_1, couple_name_2, wedding_date,
+    emailTheme   - struct from email-theme-helper.cfm
+    qSiteForEmail - query row: couple_name_1, couple_name_2, wedding_date,
                                venue_name, venue_address, slug, invite_message
-    rsvpLink      — full RSVP URL
-    emailGuestName — guest's name string (set "" for preview)
-    emailIsReminder — boolean, true for resend
+    rsvpLink      - full RSVP URL
+    emailGuestName - guest's name string (set "" for preview)
+    emailIsReminder - boolean, true for resend
 --->
 <cfparam name="emailGuestName"   default="">
 <cfparam name="emailIsReminder"  default="false">
@@ -61,7 +61,7 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px">
     <tr>
       <td style="height:1px;background-color:#emailTheme.accentColor#;opacity:0.25;font-size:0;line-height:0">&nbsp;</td>
-      <td width="32" align="center" style="color:#emailTheme.accentColor#;font-size:18px;padding:0 10px;line-height:1;font-family:Georgia,serif">&##10022;</td>
+      <td width="32" align="center" style="color:#emailTheme.accentColor#;font-size:18px;padding:0 10px;line-height:1;font-family:Georgia,serif">&#10022;</td>
       <td style="height:1px;background-color:#emailTheme.accentColor#;opacity:0.25;font-size:0;line-height:0">&nbsp;</td>
     </tr>
     </table>
@@ -84,7 +84,7 @@
       This is a friendly reminder that you are invited to celebrate the wedding of
       <strong>#HTMLEditFormat(qSiteForEmail.couple_name_1)#</strong> and
       <strong>#HTMLEditFormat(qSiteForEmail.couple_name_2)#</strong>.
-      We would love to see you there — please RSVP below.
+      We would love to see you there - please RSVP below.
     </p>
     <cfelse>
     <p style="margin:0 0 32px 0;color:#emailTheme.bodyText#;font-size:17px;line-height:1.85;font-family:#emailTheme.fontStack#">
@@ -151,7 +151,7 @@
   <tr><td align="center" style="background:#emailTheme.headerBg#;padding:24px 40px;border-top:1px solid #emailTheme.dividerColor#">
     <p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:600">
       <a href="https://digitalweddings.love" style="color:#emailTheme.headerText#;text-decoration:none">digitalweddings.love</a>
-      <span style="color:##cc0022;margin-left:5px">&##9829;</span>
+      <span style="color:##cc0022;margin-left:5px">&#9829;</span>
     </p>
     <p style="margin:0;color:#emailTheme.headerText#;font-size:11px;opacity:0.5;font-family:Arial,Helvetica,sans-serif">Celebrating love, one wedding at a time.</p>
   </td></tr>

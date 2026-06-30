@@ -2,42 +2,88 @@
 <cfset pageTitle = "Wedding Party | digitalweddings.love">
 <cfset activePage = "wedding-party">
 <cfset userId = session.user.id>
-<cfparam name="form.action"  default="">
-<cfparam name="form.memberId" default="0">
+<cfparam name="form.action"    default="">
+<cfparam name="form.memberId"  default="0">
+<cfparam name="form.name"      default="">
+<cfparam name="form.email"     default="">
+<cfparam name="form.partyRole" default="">
+<cfparam name="form.partySide" default="">
 <cfparam name="url.preview"   default="">
 <cfparam name="url.error"     default="">
+
 
 <!--- ── Send test invite to self ── --->
 <cfif form.action EQ "send_test" AND isNumeric(form.memberId) AND form.memberId GT 0>
     <cftry>
         <cfquery name="qMember" datasource="#application.config.datasource#">
-            SELECT name, party_role FROM dbo.WeddingPartyMembers
+            SELECT name, party_role, party_side FROM dbo.WeddingPartyMembers
             WHERE wedding_party_member_id = <cfqueryparam value="#form.memberId#" cfsqltype="cf_sql_bigint">
               AND user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
         </cfquery>
+        <cfif NOT qMember.recordCount>
+            <cfthrow message="Member not found for ID #form.memberId# and userId #userId#">
+        </cfif>
         <cfquery name="qSiteForEmail" datasource="#application.config.datasource#">
             SELECT couple_name_1, couple_name_2, wedding_date, slug, template
             FROM dbo.WeddingSites
             WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
             ORDER BY created_at DESC
         </cfquery>
-        <cfif qMember.recordCount AND qSiteForEmail.recordCount>
-            <cfinclude template="email-theme-helper.cfm">
-            <cfset emailSiteLink = "https://digitalweddings.love/site.cfm?slug=" & URLEncodedFormat(qSiteForEmail.slug)>
-            <cfset wpMemberName  = trim(qMember.name)>
-            <cfset wpRole        = trim(qMember.party_role)>
-            <cfset wpSubject     = "[TEST] " & HTMLEditFormat(qSiteForEmail.couple_name_1) & " & " & HTMLEditFormat(qSiteForEmail.couple_name_2) & " want you in their wedding!">
-            <cfmail to="#session.user.email#"
-                    from="#application.config.mailFrom#"
-                    replyto="#session.user.email#"
-                    subject="#wpSubject#"
-                    server="localhost"
-                    port="25"
-                    timeout="60"
-                    type="html"><cfinclude template="email-wedding-party-body.cfm"></cfmail>
-            <cflocation url="wedding-party.cfm?preview=1" addToken="false">
+        <cfif NOT qSiteForEmail.recordCount>
+            <cfthrow message="No WeddingSite found for userId #userId#. A wedding site is required to send invites.">
         </cfif>
-    <cfcatch>
+        <cfinclude template="email-theme-helper.cfm">
+        <cfset emailSiteLink = "https://digitalweddings.love/site.cfm?slug=" & URLEncodedFormat(qSiteForEmail.slug)>
+        <cfset wpMemberName  = trim(qMember.name)>
+        <cfset wpRole        = trim(qMember.party_role)>
+        <cfset wpSide        = trim(qMember.party_side)>
+        <cfset wpMemberId    = form.memberId>
+        <cfif wpSide EQ "Bride's Side">
+            <cfset wpSubject = "[TEST] " & qSiteForEmail.couple_name_1 & " wants you in their wedding!">
+        <cfelseif wpSide EQ "Groom's Side">
+            <cfset wpSubject = "[TEST] " & qSiteForEmail.couple_name_2 & " wants you in their wedding!">
+        <cfelse>
+            <cfset wpSubject = "[TEST] " & qSiteForEmail.couple_name_1 & " & " & qSiteForEmail.couple_name_2 & " want you in their wedding!">
+        </cfif>
+        <cfif NOT len(trim(session.user.email))>
+            <cfthrow message="session.user.email is empty - cannot send test email.">
+        </cfif>
+        <cfmail to="#session.user.email#"
+                from="#application.config.mailFrom#"
+                replyto="#session.user.email#"
+                subject="#wpSubject#"
+                type="html"><cfinclude template="email-wedding-party-body.cfm"></cfmail>
+        <cflocation url="wedding-party.cfm?preview=1" addToken="false">
+    <cfcatch type="any">
+        <cftry>
+        <cfmail to="moniqueboea@gmail.com"
+                from="#application.config.mailFrom#"
+                subject="wedding-party.cfm send_test ERROR - #cfcatch.type#"
+                type="text">
+ERROR REPORT - wedding-party.cfm send_test (digitalweddings)
+=============================================================
+Type:    #cfcatch.type#
+Message: #cfcatch.message#
+Detail:  #cfcatch.detail#
+
+--- Variables at time of error ---
+userId:            #userId#
+form.memberId:     #form.memberId#
+session.user.email:#IsDefined('session.user.email') ? session.user.email : '[NOT DEFINED]'#
+qMember.recordCount:    #IsDefined('qMember') ? qMember.recordCount : '[query not run]'#
+qSiteForEmail.recordCount: #IsDefined('qSiteForEmail') ? qSiteForEmail.recordCount : '[query not run]'#
+wpMemberName:      #IsDefined('wpMemberName') ? wpMemberName : '[NOT DEFINED]'#
+wpRole:            #IsDefined('wpRole') ? wpRole : '[NOT DEFINED]'#
+wpSide:            #IsDefined('wpSide') ? wpSide : '[NOT DEFINED]'#
+wpSubject:         #IsDefined('wpSubject') ? wpSubject : '[NOT DEFINED]'#
+emailSiteLink:     #IsDefined('emailSiteLink') ? emailSiteLink : '[NOT DEFINED]'#
+application.config.mailFrom: #IsDefined('application.config.mailFrom') ? application.config.mailFrom : '[NOT DEFINED]'#
+
+--- Stack Trace ---
+#cfcatch.stackTrace#
+        </cfmail>
+        <cfcatch type="any"><!--- ignore errors sending the diagnostic email ---></cfcatch>
+        </cftry>
         <cflocation url="wedding-party.cfm?error=testfail" addToken="false">
     </cfcatch>
     </cftry>
@@ -47,14 +93,13 @@
 <cfif form.action EQ "add_member">
     <cfif len(trim(form.name)) && len(trim(form.partyRole))>
         <cfquery datasource="#application.config.datasource#">
-            INSERT INTO dbo.WeddingPartyMembers (user_id, name, email, party_role, party_side, notes)
+            INSERT INTO dbo.WeddingPartyMembers (user_id, name, email, party_role, party_side)
             VALUES (
                 <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">,
                 <cfqueryparam value="#trim(form.name)#" cfsqltype="cf_sql_nvarchar">,
                 <cfqueryparam value="#lCase(trim(form.email))#" cfsqltype="cf_sql_varchar" null="#!len(trim(form.email))#">,
                 <cfqueryparam value="#trim(form.partyRole)#" cfsqltype="cf_sql_nvarchar">,
-                <cfqueryparam value="#trim(form.partySide)#" cfsqltype="cf_sql_nvarchar" null="#!len(trim(form.partySide))#">,
-                <cfqueryparam value="#trim(form.notes)#" cfsqltype="cf_sql_nvarchar" null="#!len(trim(form.notes))#">
+                <cfqueryparam value="#trim(form.partySide)#" cfsqltype="cf_sql_nvarchar" null="#!len(trim(form.partySide))#">
             )
         </cfquery>
 
@@ -72,8 +117,22 @@
                     <cfset emailSiteLink = "https://digitalweddings.love/site.cfm?slug=" & URLEncodedFormat(qSiteForEmail.slug)>
                     <cfset wpMemberName  = trim(form.name)>
                     <cfset wpRole        = trim(form.partyRole)>
+                    <cfset wpSide        = trim(form.partySide)>
                     <cfset wpEmailTo     = lCase(trim(form.email))>
-                    <cfset wpSubject     = HTMLEditFormat(qSiteForEmail.couple_name_1) & " & " & HTMLEditFormat(qSiteForEmail.couple_name_2) & " want you in their wedding!">
+                    <cfquery name="qNewMember" datasource="#application.config.datasource#">
+                        SELECT TOP 1 wedding_party_member_id FROM dbo.WeddingPartyMembers
+                        WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
+                          AND email   = <cfqueryparam value="#wpEmailTo#" cfsqltype="cf_sql_varchar">
+                        ORDER BY wedding_party_member_id DESC
+                    </cfquery>
+                    <cfset wpMemberId = qNewMember.recordCount ? qNewMember.wedding_party_member_id : 0>
+                    <cfif wpSide EQ "Bride's Side">
+                        <cfset wpSubject = HTMLEditFormat(qSiteForEmail.couple_name_1) & " wants you in their wedding!">
+                    <cfelseif wpSide EQ "Groom's Side">
+                        <cfset wpSubject = HTMLEditFormat(qSiteForEmail.couple_name_2) & " wants you in their wedding!">
+                    <cfelse>
+                        <cfset wpSubject = HTMLEditFormat(qSiteForEmail.couple_name_1) & " & " & HTMLEditFormat(qSiteForEmail.couple_name_2) & " want you in their wedding!">
+                    </cfif>
                     <cfmail to="#wpEmailTo#"
                             from="#application.config.mailFrom#"
                             replyto="#session.user.email#"
@@ -117,6 +176,31 @@
 <cfset sides = ["Bride's Side","Groom's Side","Both Sides"]>
 
 <cfinclude template="../includes/layout-start.cfm">
+<style>
+.wp-desktop { display: block; }
+.wp-mobile  { display: none; }
+@media (max-width:768px) {
+    .mfr { grid-template-columns: 1fr !important; }
+    .mfr input, .mfr select, .mfr button[type=submit] {
+        display: block !important; width: 100% !important;
+        min-width: 0 !important; max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    div.wp-desktop { display: none !important; }
+    div.wp-mobile  { display: block !important; }
+}
+</style>
+<script>
+(function(){
+    function applyLayout(){
+        var isM = window.innerWidth <= 768;
+        document.querySelectorAll('.wp-desktop').forEach(function(el){ el.style.display = isM ? 'none' : ''; });
+        document.querySelectorAll('.wp-mobile').forEach(function(el){ el.style.display = isM ? 'block' : 'none'; });
+    }
+    applyLayout();
+    window.addEventListener('resize', applyLayout);
+})();
+</script>
 <section style="padding:60px 0">
 <div class="container">
     <div class="page-header">
@@ -126,7 +210,7 @@
 
     <cfif url.preview EQ "1">
     <div class="alert alert-success" style="margin-bottom:24px">
-        Test invite sent to <cfoutput>#HTMLEditFormat(session.user.email)#</cfoutput> — check your inbox!
+        Test invite sent to <cfoutput>#HTMLEditFormat(session.user.email)#</cfoutput> &mdash; check your inbox!
     </div>
     </cfif>
     <cfif url.error EQ "testfail">
@@ -137,7 +221,7 @@
         <p class="panel-title">Add a Member</p>
         <form method="post" action="/members/wedding-party.cfm">
             <input type="hidden" name="action" value="add_member">
-            <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:12px;align-items:end">
+            <div class="mfr" style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:12px;align-items:end">
                 <div class="field" style="margin-bottom:0">
                     <label>Full Name *</label>
                     <input type="text" name="name" required placeholder="e.g. Maya Johnson">
@@ -166,10 +250,11 @@
     </div>
 
     <cfif members.recordCount>
-    <div class="panel" style="padding:0">
+    <!--- Desktop table --->
+    <div class="panel wp-desktop" style="padding:0">
         <div class="table-wrap">
             <table>
-                <thead><tr><th>Name</th><th>Role</th><th>Side</th><th>Email</th><th>Status</th><th></th></tr></thead>
+                <thead><tr><th>Name</th><th>Role</th><th>Side</th><th>Email</th><th>Status</th><th>Note</th><th></th></tr></thead>
                 <tbody>
                     <cfoutput query="members">
                     <tr>
@@ -188,6 +273,7 @@
                                 </select>
                             </form>
                         </td>
+                        <td style="font-size:13px;color:var(--text-muted);font-style:italic">#HTMLEditFormat(notes)#</td>
                         <td style="display:flex;gap:6px;flex-wrap:wrap">
                             <form method="post" action="/members/wedding-party.cfm" style="display:inline">
                                 <input type="hidden" name="action" value="send_test">
@@ -206,9 +292,50 @@
             </table>
         </div>
     </div>
+    <!--- Mobile cards --->
+    <div class="wp-mobile">
+        <cfoutput query="members">
+        <div class="panel" style="margin-bottom:12px;padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">
+                <div>
+                    <p style="font-weight:700;font-size:15px;margin-bottom:2px">#HTMLEditFormat(name)#</p>
+                    <cfif len(email)><p style="font-size:13px;color:var(--text-muted)">#HTMLEditFormat(email)#</p></cfif>
+                </div>
+                <span class="badge badge-gold" style="flex-shrink:0;margin-left:8px">#HTMLEditFormat(party_role)#</span>
+            </div>
+            <cfif len(party_side)>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">#HTMLEditFormat(party_side)#</p>
+            </cfif>
+            <cfif len(notes)>
+            <p style="font-size:13px;color:var(--text-muted);font-style:italic;margin-bottom:8px">&ldquo;#HTMLEditFormat(notes)#&rdquo;</p>
+            </cfif>
+            <form method="post" action="/members/wedding-party.cfm" style="margin-bottom:8px">
+                <input type="hidden" name="action" value="update_status">
+                <input type="hidden" name="memberId" value="#wedding_party_member_id#">
+                <select name="accepted" onchange="this.form.submit()" style="width:100%;font-size:13px;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);box-sizing:border-box">
+                    <option value="pending"  <cfif accepted EQ "pending">selected</cfif>>Pending</option>
+                    <option value="accepted" <cfif accepted EQ "accepted">selected</cfif>>Accepted</option>
+                    <option value="declined" <cfif accepted EQ "declined">selected</cfif>>Declined</option>
+                </select>
+            </form>
+            <div style="display:flex;flex-direction:column;gap:8px">
+                <form method="post" action="/members/wedding-party.cfm">
+                    <input type="hidden" name="action" value="send_test">
+                    <input type="hidden" name="memberId" value="#wedding_party_member_id#">
+                    <button type="submit" class="btn btn-ghost btn-sm" style="width:100%">Send Test Invite</button>
+                </form>
+                <form method="post" action="/members/wedding-party.cfm">
+                    <input type="hidden" name="action" value="delete_member">
+                    <input type="hidden" name="memberId" value="#wedding_party_member_id#">
+                    <button type="submit" class="btn btn-danger btn-sm" style="width:100%" onclick="return confirm('Remove this member?')">Remove</button>
+                </form>
+            </div>
+        </div>
+        </cfoutput>
+    </div>
     <cfelse>
         <div class="empty-state">
-<p>No wedding party members yet. Add your first member above!</p>
+            <p>No wedding party members yet. Add your first member above!</p>
         </div>
     </cfif>
 </div>

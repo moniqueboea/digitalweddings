@@ -7,7 +7,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><cfoutput>#HTMLEditFormat(pageTitle)#</cfoutput></title>
-    <link rel="stylesheet" href="/assets/site.css?v=15">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.svg">
+    <link rel="stylesheet" href="/assets/site.css?v=18">
 </head>
 <body<cfoutput><cfif isLoggedIn> class="nav-tall"</cfif></cfoutput>>
 
@@ -23,7 +25,7 @@
                 <a href="/members/timeline.cfm" class="<cfif activePage EQ 'timeline'>active</cfif>">Wedding Day</a>
                 <a href="/members/honeymoon.cfm" class="<cfif activePage EQ 'honeymoon'>active</cfif>">Honeymoon</a>
                 <a href="/members/gift-registry.cfm" class="<cfif activePage EQ 'gift-registry'>active</cfif>">Gift Registry</a>
-                <a href="/vendors.cfm" class="<cfif activePage EQ 'vendors'>active</cfif>">Find a Vendor</a>
+                <a href="/members/vendors.cfm" class="<cfif activePage EQ 'vendors'>active</cfif>">Find a Vendor</a>
                 <a href="/members/wedding-sites.cfm" class="<cfif activePage EQ 'wedding-sites'>active</cfif>">My Wedding Site</a>
                 <a href="/members/wedding-party.cfm" class="<cfif activePage EQ 'wedding-party'>active</cfif>">Wedding Party</a>
                 <a href="/members/save-the-date.cfm" class="<cfif activePage EQ 'save-the-date'>active</cfif>">Save the Date</a>
@@ -63,12 +65,15 @@
         <a href="/members/timeline.cfm">Wedding Day</a>
         <a href="/members/honeymoon.cfm">Honeymoon</a>
         <a href="/members/gift-registry.cfm">Gift Registry</a>
-        <a href="/vendors.cfm">Find a Vendor</a>
+        <a href="/members/vendors.cfm">Find a Vendor</a>
         <a href="/members/wedding-sites.cfm">My Wedding Site</a>
         <a href="/members/wedding-party.cfm">Wedding Party</a>
         <a href="/members/save-the-date.cfm">Save the Date</a>
         <a href="/members/thank-you-cards.cfm">Thank You Cards</a>
         <div class="mobile-menu-actions">
+            <cfif structKeyExists(session.user,"is_admin") AND session.user.is_admin>
+            <a href="/admin/index.cfm" class="btn btn-ghost btn-full" style="border-color:var(--gold);color:var(--gold)">Admin</a>
+            </cfif>
             <a href="/logout.cfm" class="btn btn-ghost btn-full">Sign Out</a>
         </div>
     <cfelse>

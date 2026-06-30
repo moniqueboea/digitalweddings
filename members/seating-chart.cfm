@@ -5,7 +5,7 @@
 
 <cfparam name="form.action" default="">
 
-<!--- Count confirmed RSVPs — seating requires at least one RSVP --->
+<!--- Count confirmed RSVPs - seating requires at least one RSVP --->
 <cfquery name="rsvpCount" datasource="#application.config.datasource#">
     SELECT COUNT(*) AS total FROM dbo.Guests
     WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
@@ -17,13 +17,17 @@
 
 <!--- Block table/seat actions if no RSVPs --->
 <cfif form.action EQ "add_table" && hasRsvps>
-    <cfif isNumeric(form.tableNumber) && len(trim(form.tableLabel))>
+    <cfif len(trim(form.tableLabel))>
+        <cfquery name="qMaxTable" datasource="#application.config.datasource#">
+            SELECT ISNULL(MAX(table_number), 0) + 1 AS nextNum FROM dbo.ReceptionTables
+            WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
+        </cfquery>
         <cfquery datasource="#application.config.datasource#">
             INSERT INTO dbo.ReceptionTables (user_id, table_number, table_name, capacity)
             VALUES (
                 <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">,
-                <cfqueryparam value="#val(form.tableNumber)#" cfsqltype="cf_sql_integer">,
-                <cfqueryparam value="#trim(form.tableLabel)#" cfsqltype="cf_sql_nvarchar" null="#!len(trim(form.tableLabel))#">,
+                <cfqueryparam value="#qMaxTable.nextNum#" cfsqltype="cf_sql_integer">,
+                <cfqueryparam value="#trim(form.tableLabel)#" cfsqltype="cf_sql_nvarchar">,
                 <cfqueryparam value="#isNumeric(form.capacity) ? val(form.capacity) : 8#" cfsqltype="cf_sql_integer">
             )
         </cfquery>
@@ -66,15 +70,27 @@
 
 <cfquery name="guests" datasource="#application.config.datasource#">
     SELECT guest_id, name, rsvp_status, table_number, plus_one, plus_one_name FROM dbo.Guests
-    WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint"> ORDER BY name
+    WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
+      AND (rsvp_status IS NULL OR rsvp_status <> 'declined')
+    ORDER BY name
 </cfquery>
 
 <cfquery name="unassigned" datasource="#application.config.datasource#">
     SELECT guest_id, name, plus_one, plus_one_name FROM dbo.Guests
-    WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint"> AND table_number IS NULL ORDER BY name
+    WHERE user_id = <cfqueryparam value="#userId#" cfsqltype="cf_sql_bigint">
+      AND (rsvp_status IS NULL OR rsvp_status <> 'declined')
+      AND table_number IS NULL
+    ORDER BY name
 </cfquery>
 
 <cfinclude template="../includes/layout-start.cfm">
+<style>
+@media (max-width:768px) {
+    .unassigned-row { flex-direction:column !important; align-items:stretch !important; gap:10px !important; }
+    .unassigned-form { flex-direction:column !important; width:100% !important; }
+    .unassigned-form select, .unassigned-form button { width:100% !important; box-sizing:border-box !important; }
+}
+</style>
 <section style="padding:60px 0">
 <div class="container">
     <div class="page-header">
@@ -101,10 +117,7 @@
                 <form method="post" action="/members/seating-chart.cfm">
                     <input type="hidden" name="action" value="add_table">
                     <div class="field-row">
-                        <div class="field"><label>Table #</label><input type="number" name="tableNumber" min="1" required <cfif !hasRsvps>disabled</cfif>></div>
                         <div class="field"><label>Label</label><input type="text" name="tableLabel" placeholder="e.g. Head Table" required <cfif !hasRsvps>disabled</cfif>></div>
-                    </div>
-                    <div class="field-row">
                         <div class="field"><label>Capacity</label><input type="number" name="capacity" min="1" value="8" <cfif !hasRsvps>disabled</cfif>></div>
                     </div>
                     <button type="submit" class="btn btn-primary" <cfif !hasRsvps>disabled</cfif>>Add Table</button>
@@ -117,7 +130,7 @@
                 <cfloop query="guests">
                     <cfif table_number EQ tables.table_number>
                         <cfset seated++>
-                        <cfif plus_one AND len(trim(plus_one_name))><cfset seated++></cfif>
+                        <cfif plus_one><cfset seated++></cfif>
                     </cfif>
                 </cfloop>
                 <div class="panel" style="margin-bottom:16px">
@@ -156,9 +169,9 @@
                                         <button type="submit" class="btn btn-ghost btn-sm" style="padding:2px 8px">Remove</button>
                                     </form>
                                 </div>
-                                <cfif plus_one AND len(trim(plus_one_name))>
+                                <cfif plus_one>
                                 <div style="font-size:12px;color:var(--text-muted);padding-left:10px;margin-top:2px">
-                                    &plus; #HTMLEditFormat(plus_one_name)#
+                                    &plus; #len(trim(plus_one_name)) ? HTMLEditFormat(plus_one_name) : 'Guest'#
                                 </div>
                                 </cfif>
                             </div>
@@ -179,15 +192,15 @@
                     <p style="color:var(--text-muted);font-size:14px">&#128274; Awaiting RSVPs before guests can be seated.</p>
                 <cfelseif unassigned.recordCount && tables.recordCount>
                     <cfoutput query="unassigned">
-                    <div style="padding:8px 0;border-bottom:1px solid var(--border)">
-                        <div style="display:flex;justify-content:space-between;align-items:center">
-                            <div>
+                    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+                        <div class="unassigned-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+                            <div style="flex-shrink:0">
                                 <span style="font-size:14px;font-weight:600">#HTMLEditFormat(name)#</span>
-                                <cfif plus_one AND len(trim(plus_one_name))>
-                                <span style="font-size:12px;color:var(--text-muted);margin-left:8px">&plus; #HTMLEditFormat(plus_one_name)#</span>
+                                <cfif plus_one>
+                                <span style="font-size:12px;color:var(--text-muted);margin-left:6px">&plus; #len(trim(plus_one_name)) ? HTMLEditFormat(plus_one_name) : 'Guest'#</span>
                                 </cfif>
                             </div>
-                            <form method="post" action="/members/seating-chart.cfm" style="display:flex;gap:8px;align-items:center">
+                            <form method="post" action="/members/seating-chart.cfm" class="unassigned-form" style="display:flex;gap:8px;align-items:center">
                                 <input type="hidden" name="action" value="assign_table">
                                 <input type="hidden" name="guestId" value="#guest_id#">
                                 <select name="tableNum" style="font-size:12px;padding:4px;border:1px solid var(--border);border-radius:4px">

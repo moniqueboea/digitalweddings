@@ -22,7 +22,7 @@
     <cfif !len(trim(form.businessName)) OR !len(trim(form.category)) OR !len(trim(form.description)) OR !len(trim(form.location)) OR !isValid("email", trim(form.email))>
         <cfset errorMsg = "Please fill in all required fields with a valid email address.">
     <cfelseif !hasLink>
-        <cfset errorMsg = "Please enter at least one online presence — your website, Instagram, or Facebook page.">
+        <cfset errorMsg = "Please enter at least one online presence - your website, Instagram, or Facebook page.">
     <cfelseif !hasImage>
         <cfset errorMsg = "Please upload a photo of your business or work.">
     <cfelse>
@@ -79,7 +79,7 @@
     <div class="container" style="max-width:700px">
         <p class="eyebrow">Join Our Directory</p>
         <h1 style="font-size:38px;margin-bottom:8px">Register as a <span class="script">Vendor</span></h1>
-        <p style="color:var(--text-muted);margin-bottom:36px">Connect with Black couples planning their perfect day. Listings are reviewed within 2 business days.</p>
+        <p style="color:var(--text-muted);margin-bottom:36px">Connect with couples planning their perfect day. Listings are reviewed within 2 business days.</p>
 
         <cfif len(errorMsg)><div class="alert alert-error"><cfoutput>#HTMLEditFormat(errorMsg)#</cfoutput></div></cfif>
         <cfif len(successMsg)><div class="alert alert-success"><cfoutput>#HTMLEditFormat(successMsg)#</cfoutput></div></cfif>
@@ -168,11 +168,13 @@
             </form>
             <script>
             function validateLinks() {
+                var form = document.querySelector('form');
+                if (!form.checkValidity()) { form.reportValidity(); return false; }
                 var w = document.getElementById('website').value.trim();
                 var i = document.getElementById('instagram').value.trim();
                 var f = document.getElementById('facebook').value.trim();
                 if (!w && !i && !f) {
-                    alert('Please enter at least one link — your website, Instagram, or Facebook page.');
+                    alert('Please enter at least one link - your website, Instagram, or Facebook page.');
                     return false;
                 }
                 return true;

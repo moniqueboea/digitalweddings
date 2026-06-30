@@ -22,13 +22,13 @@
                 Our platform brings every aspect of wedding planning together in one convenient place. From creating your personalized wedding website and managing guest lists to sending digital invitations, tracking RSVPs, organizing your planning checklist, connecting with vendors, and setting up registries or gift funds, DigitalWeddings.Love helps you stay organized every step of the way.
             </p>
             <p style="margin-bottom:24px">
-                More than just a planning tool, DigitalWeddings.Love is a celebration of love in all its forms — the traditions, the culture, and the unique stories that make every couple special. We are committed to showcasing diverse vendors, highlighting beautiful real weddings, and providing resources that reflect and honor every couple's vision.
+                More than just a planning tool, DigitalWeddings.Love is a celebration of love in all its forms - the traditions, the culture, and the unique stories that make every couple special. We are committed to showcasing diverse vendors, highlighting beautiful real weddings, and providing resources that reflect and honor every couple's vision.
             </p>
             <p style="margin-bottom:24px">
-                Whether you're planning an intimate gathering, a destination wedding, or a grand celebration, our goal is to make wedding planning simpler, more accessible, and completely digital — so you can spend less time managing details and more time enjoying your engagement.
+                Whether you're planning an intimate gathering, a destination wedding, or a grand celebration, our goal is to make wedding planning simpler, more accessible, and completely digital - so you can spend less time managing details and more time enjoying your engagement.
             </p>
             <p style="font-weight:600;color:var(--text)">
-                DigitalWeddings.Love is your complete digital wedding planner — where every love story plans forever.
+                DigitalWeddings.Love is your complete digital wedding planner - where every love story plans forever.
             </p>
         </div>
     </div>

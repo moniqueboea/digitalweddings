@@ -27,7 +27,7 @@ component output="false" {
     // PUBLIC: notify()
     //
     // Sends a detailed error report to the admin.
-    // Never throws — all failure paths are caught internally.
+    // Never throws - all failure paths are caught internally.
     // =========================================================
     public void function notify(
         required any exception,
@@ -52,7 +52,7 @@ component output="false" {
                 port      = 25,
                 timeout   = 30
             ) { writeOutput(body); }
-            return; // success — done
+            return; // success - done
         } catch(any mailErr1) {}
 
         // --- Tier 2: plain-text fallback email ---
@@ -82,7 +82,7 @@ component output="false" {
             return;
         } catch(any mailErr2) {}
 
-        // --- Tier 3: cflog (last resort — wrapped so it cannot propagate) ---
+        // --- Tier 3: cflog (last resort - wrapped so it cannot propagate) ---
         try {
             cflog(
                 file = "digitalweddings_errors",
@@ -93,7 +93,7 @@ component output="false" {
                      & " DETAIL=" & left(arguments.exception.detail, 500)
             );
         } catch(any logErr) {
-            // Truly nothing more we can do — swallow silently
+            // Truly nothing more we can do - swallow silently
         }
     }
 
@@ -289,7 +289,7 @@ component output="false" {
         if (len(urlHTML)) { h &= section("URL Variables", urlHTML); }
 
         // Session
-        h &= section("Session (safe fields only — no passwords)", sessionHTML);
+        h &= section("Session (safe fields only - no passwords)", sessionHTML);
 
         h &= "</div></div></body></html>";
         return h;

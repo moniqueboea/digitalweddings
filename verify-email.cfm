@@ -40,7 +40,7 @@
     <div class="auth-box" style="text-align:center">
         <div class="auth-logo"><a href="/index.cfm">digitalweddings<span>.love</span></a></div>
         <cfif len(errorMsg)>
-            <div style="font-size:48px;margin-bottom:16px">&#10060;</div>
+            <div style="font-size:48px;margin-bottom:16px">&##10060;</div>
             <h1 class="auth-title">Verification Failed</h1>
             <div class="alert alert-error" style="text-align:left"><cfoutput>#HTMLEditFormat(errorMsg)#</cfoutput></div>
             <a href="/resend-verification.cfm" class="btn btn-outline">Resend Verification Email</a>

@@ -1,13 +1,13 @@
 <!---
-  email-announcement-body.cfm — shared email HTML for bulk guest messages.
+  email-announcement-body.cfm - shared email HTML for bulk guest messages.
 
   Required variables set before cfinclude:
-    emailTheme       — struct from email-theme-helper.cfm
-    qSiteForEmail    — query row with couple_name_1, couple_name_2, wedding_date,
+    emailTheme       - struct from email-theme-helper.cfm
+    qSiteForEmail    - query row with couple_name_1, couple_name_2, wedding_date,
                        venue_name, venue_address, slug
-    emailGuestName   — recipient's name string
-    emailMessageBody — the message the couple typed
-    emailSiteLink    — full URL to the wedding website
+    emailGuestName   - recipient's name string
+    emailMessageBody - the message the couple typed
+    emailSiteLink    - full URL to the wedding website
 --->
 <cfparam name="emailGuestName"   default="">
 <cfparam name="emailMessageBody" default="">
@@ -53,7 +53,7 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px">
     <tr>
       <td style="height:1px;background-color:#emailTheme.accentColor#;opacity:0.25;font-size:0;line-height:0">&nbsp;</td>
-      <td width="32" align="center" style="color:#emailTheme.accentColor#;font-size:16px;padding:0 10px;line-height:1;font-family:Georgia,serif">&##10022;</td>
+      <td width="32" align="center" style="color:#emailTheme.accentColor#;font-size:16px;padding:0 10px;line-height:1;font-family:Georgia,serif">&#10022;</td>
       <td style="height:1px;background-color:#emailTheme.accentColor#;opacity:0.25;font-size:0;line-height:0">&nbsp;</td>
     </tr>
     </table>
@@ -102,7 +102,7 @@
   <tr><td align="center" style="background:#emailTheme.headerBg#;padding:22px 40px;border-top:1px solid #emailTheme.dividerColor#">
     <p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:600">
       <a href="https://digitalweddings.love" style="color:#emailTheme.headerText#;text-decoration:none">digitalweddings.love</a>
-      <span style="color:##cc0022;margin-left:5px">&##9829;</span>
+      <span style="color:##cc0022;margin-left:5px">&#9829;</span>
     </p>
     <p style="margin:0;color:#emailTheme.headerText#;font-size:11px;opacity:0.5;font-family:Arial,Helvetica,sans-serif">Celebrating love, one wedding at a time.</p>
   </td></tr>

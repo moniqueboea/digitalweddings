@@ -177,7 +177,7 @@
                            value="<cfoutput>#HTMLEditFormat(form.vendorFacebook)#</cfoutput>">
                 </div>
             </div>
-            <p style="margin:-8px 0 20px;font-size:12px;color:var(--text-muted)">At least one link is required.</p>
+
 
             <div class="field">
                 <label>Personal Message <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional &mdash; replaces default copy)</span></label>
@@ -200,16 +200,7 @@
 </section>
 
 <script>
-function validateLinks() {
-    var website   = document.querySelector('[name="vendorWebsite"]').value.trim();
-    var instagram = document.querySelector('[name="vendorInstagram"]').value.trim();
-    var facebook  = document.querySelector('[name="vendorFacebook"]').value.trim();
-    if (!website && !instagram && !facebook) {
-        alert('Please enter at least one link — website, Instagram, or Facebook.');
-        return false;
-    }
-    return true;
-}
+
 function sendPreview() {
     var name = document.querySelector('[name="vendorName"]').value.trim();
     if (!name) { alert('Please enter a vendor name first.'); return; }

@@ -158,7 +158,7 @@
     </div>
     <cfelse>
         <div class="empty-state">
-            <div style="font-size:48px;margin-bottom:16px">&#128101;</div>
+            <div style="font-size:48px;margin-bottom:16px">&##128101;</div>
             <p>No guests yet. Start building your guest list above!</p>
         </div>
     </cfif>

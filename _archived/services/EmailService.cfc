@@ -139,7 +139,7 @@ component output="false" {
           </p>
         ";
 
-        var body = emailWrapper(content, "Reset your digitalweddings.love password — link expires soon.");
+        var body = emailWrapper(content, "Reset your digitalweddings.love password - link expires soon.");
 
         try {
             cfmail(
