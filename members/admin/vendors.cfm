@@ -1,0 +1,230 @@
+<cfinclude template="admin-check.cfm">
+<cfset pageTitle  = "Manage Vendors | Admin">
+<cfset activePage = "admin">
+<cfparam name="form.action"   default="">
+<cfparam name="form.vendorId" default="0">
+<cfparam name="url.saved"     default="">
+<cfparam name="url.filter"    default="all">
+
+<cfif form.action EQ "approve" AND isNumeric(form.vendorId)>
+    <cfquery datasource="#application.config.datasource#">
+        UPDATE dbo.Vendors SET status='approved', updated_at=SYSUTCDATETIME()
+        WHERE vendor_id = <cfqueryparam value="#form.vendorId#" cfsqltype="cf_sql_bigint">
+    </cfquery>
+    <cflocation url="vendors.cfm?saved=approved&filter=pending" addToken="false">
+</cfif>
+
+<cfif form.action EQ "reject" AND isNumeric(form.vendorId)>
+    <cfquery datasource="#application.config.datasource#">
+        UPDATE dbo.Vendors SET status='rejected', updated_at=SYSUTCDATETIME()
+        WHERE vendor_id = <cfqueryparam value="#form.vendorId#" cfsqltype="cf_sql_bigint">
+    </cfquery>
+    <cflocation url="vendors.cfm?saved=rejected&filter=#URLEncodedFormat(url.filter)#" addToken="false">
+</cfif>
+
+<cfif form.action EQ "delete" AND isNumeric(form.vendorId)>
+    <cfquery datasource="#application.config.datasource#">
+        DELETE FROM dbo.Vendors WHERE vendor_id = <cfqueryparam value="#form.vendorId#" cfsqltype="cf_sql_bigint">
+    </cfquery>
+    <cflocation url="vendors.cfm?saved=deleted&filter=#URLEncodedFormat(url.filter)#" addToken="false">
+</cfif>
+
+<cfif url.filter EQ "pending">
+    <cfset statusFilter = "pending">
+<cfelseif url.filter EQ "active">
+    <cfset statusFilter = "approved">
+<cfelseif url.filter EQ "rejected">
+    <cfset statusFilter = "rejected">
+<cfelse>
+    <cfset statusFilter = "all">
+</cfif>
+
+<cfquery name="qVendors" datasource="#application.config.datasource#">
+    SELECT vendor_id, business_name, category, location, email, phone, website, instagram_url, facebook_url, price_range, status, complimentary, created_at, description
+    FROM dbo.Vendors
+    <cfif statusFilter NEQ "all">
+    WHERE status = <cfqueryparam value="#statusFilter#" cfsqltype="cf_sql_varchar">
+    </cfif>
+    ORDER BY CASE status WHEN 'invited' THEN 0 WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 ELSE 3 END, created_at DESC
+</cfquery>
+
+<cfquery name="qCounts" datasource="#application.config.datasource#">
+    SELECT
+        COUNT(*)                                       AS total,
+        SUM(CASE WHEN status='pending'  THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN status='approved'   THEN 1 ELSE 0 END) AS active,
+        SUM(CASE WHEN status='rejected' THEN 1 ELSE 0 END) AS rejected
+    FROM dbo.Vendors
+</cfquery>
+
+<cfinclude template="../../includes/layout-start.cfm">
+<section style="padding:60px 0">
+<div class="container">
+
+    <div class="page-header">
+        <p class="eyebrow"><a href="/admin/index.cfm" style="color:var(--gold)">Admin</a></p>
+        <h1>Manage <span class="script">Vendors</span></h1>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
+        <a href="/admin/vendor-analytics.cfm" class="btn btn-ghost btn-sm" style="border-color:var(--gold);color:var(--gold)">Analytics</a>
+        <a href="/admin/vendor-messages.cfm"  class="btn btn-ghost btn-sm" style="border-color:var(--gold);color:var(--gold)">Messages</a>
+    </div>
+
+    <cfif url.saved EQ "approved"><div class="alert alert-success" style="margin-bottom:24px">Vendor approved and now live.</div></cfif>
+    <cfif url.saved EQ "rejected"><div class="alert alert-error" style="margin-bottom:24px">Vendor rejected.</div></cfif>
+    <cfif url.saved EQ "deleted"><div class="alert alert-error" style="margin-bottom:24px">Vendor deleted.</div></cfif>
+
+    <!--- Filter tabs --->
+    <cfoutput>
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+        <a href="vendors.cfm?filter=all"      class="btn #url.filter EQ 'all'      ? 'btn-primary' : 'btn-ghost'# btn-sm">All (#qCounts.total#)</a>
+        <a href="vendors.cfm?filter=pending"  class="btn #url.filter EQ 'pending'  ? 'btn-primary' : 'btn-ghost'# btn-sm" style="#qCounts.pending GT 0 ? 'border-color:##d97706;color:##d97706' : ''#">Pending (#qCounts.pending#)</a>
+        <a href="vendors.cfm?filter=approved"   class="btn #url.filter EQ 'approved'   ? 'btn-primary' : 'btn-ghost'# btn-sm">Active (#qCounts.active#)</a>
+        <a href="vendors.cfm?filter=rejected" class="btn #url.filter EQ 'rejected' ? 'btn-primary' : 'btn-ghost'# btn-sm">Rejected (#qCounts.rejected#)</a>
+    </div>
+    </cfoutput>
+
+    <cfif qVendors.recordCount>
+    <div class="panel" style="padding:0">
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Business</th><th>Category</th><th>Status</th><th>Submitted</th><th></th></tr>
+        </thead>
+        <tbody>
+        <cfoutput query="qVendors">
+        <tr>
+            <td>
+                <strong>#HTMLEditFormat(business_name)#</strong>
+                <cfif len(trim(website))><br><a href="#HTMLEditFormat(trim(website))#" target="_blank" style="font-size:11px;color:var(--gold)">website</a></cfif>
+                <cfif len(trim(instagram_url))><br><a href="#HTMLEditFormat(trim(instagram_url))#" target="_blank" style="font-size:11px;color:var(--gold)">instagram</a></cfif>
+                <cfif len(trim(facebook_url))><br><a href="#HTMLEditFormat(trim(facebook_url))#" target="_blank" style="font-size:11px;color:var(--gold)">facebook</a></cfif>
+            </td>
+            <td><span class="badge badge-gray">#HTMLEditFormat(category)#</span></td>
+            <td>
+                <cfif status EQ "approved">  <span class="badge badge-green">Active</span>
+                <cfelseif status EQ "pending">  <span class="badge badge-amber">Pending</span>
+                <cfelse><span class="badge badge-gray">Rejected</span>
+                </cfif>
+            </td>
+            <td style="font-size:12px;color:var(--text-muted)">#dateFormat(created_at,'mmm d, yyyy')#</td>
+            <td style="white-space:nowrap">
+                <button type="button" class="btn btn-ghost btn-sm" style="margin-right:4px" onclick="viewVendor(#vendor_id#)">View</button>
+                <cfif status EQ "pending">
+                <form method="post" action="/admin/vendors.cfm?filter=pending" style="display:inline">
+                    <input type="hidden" name="action"   value="approve">
+                    <input type="hidden" name="vendorId" value="#vendor_id#">
+                    <button type="submit" class="btn btn-primary btn-sm" style="margin-right:4px">Approve</button>
+                </form>
+                <form method="post" action="/admin/vendors.cfm?filter=pending" style="display:inline">
+                    <input type="hidden" name="action"   value="reject">
+                    <input type="hidden" name="vendorId" value="#vendor_id#">
+                    <button type="submit" class="btn btn-ghost btn-sm" onclick="return confirm('Reject #JSStringFormat(business_name)#?')">Reject</button>
+                </form>
+                <cfelseif status EQ "rejected">
+                <form method="post" action="/admin/vendors.cfm" style="display:inline">
+                    <input type="hidden" name="action"   value="approve">
+                    <input type="hidden" name="vendorId" value="#vendor_id#">
+                    <button type="submit" class="btn btn-ghost btn-sm" style="margin-right:4px">Approve</button>
+                </form>
+                </cfif>
+                <form method="post" action="/admin/vendors.cfm?filter=#URLEncodedFormat(url.filter)#" style="display:inline">
+                    <input type="hidden" name="action"   value="delete">
+                    <input type="hidden" name="vendorId" value="#vendor_id#">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Permanently delete #JSStringFormat(business_name)#?')">&times;</button>
+                </form>
+            </td>
+        </tr>
+        </cfoutput>
+        </tbody>
+    </table>
+    </div>
+    </div>
+    <cfelse>
+    <div class="empty-state"><p>No vendors in this category.</p></div>
+    </cfif>
+
+</div>
+</section>
+
+<!--- Vendor detail modal --->
+<div id="vendorModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;padding:20px">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.2)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)">
+            <h2 id="modalTitle" style="font-size:18px;font-family:var(--font-heading);margin:0"></h2>
+            <button onclick="closeModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);line-height:1">&times;</button>
+        </div>
+        <div id="modalBody" style="padding:24px"></div>
+    </div>
+</div>
+
+<!--- Vendor data for JS --->
+<cfoutput>
+<script>
+var vendorData = {
+<cfloop query="qVendors">
+    #vendor_id#: {
+        id:          #vendor_id#,
+        name:        "#JSStringFormat(business_name)#",
+        category:    "#JSStringFormat(category)#",
+        location:    "#JSStringFormat(location)#",
+        email:       "#JSStringFormat(email)#",
+        phone:       "#JSStringFormat(phone)#",
+        website:     "#JSStringFormat(trim(website))#",
+        instagram:   "#JSStringFormat(trim(instagram_url))#",
+        facebook:    "#JSStringFormat(trim(facebook_url))#",
+        price:       "#JSStringFormat(price_range)#",
+        status:      "#JSStringFormat(status)#",
+        complimentary: #complimentary ? 'true' : 'false'#,
+        submitted:   "#JSStringFormat(dateFormat(created_at,'mmmm d, yyyy'))#",
+        description: "#JSStringFormat(trim(description))#"
+    },
+</cfloop>
+};
+
+function viewVendor(id) {
+    var v = vendorData[id];
+    if (!v) return;
+    document.getElementById('modalTitle').textContent = v.name;
+    var statusLabel = v.status.charAt(0).toUpperCase() + v.status.slice(1);
+    var rows = [
+        ['Category',    v.category],
+        ['Location',    v.location],
+        ['Email',       v.email ? '<a href="mailto:' + v.email + '">' + v.email + '</a>' : ''],
+        ['Phone',       v.phone],
+        ['Website',     v.website   ? '<a href="' + v.website   + '" target="_blank" rel="noopener">' + v.website   + '</a>' : ''],
+        ['Instagram',   v.instagram ? '<a href="' + v.instagram + '" target="_blank" rel="noopener">' + v.instagram + '</a>' : ''],
+        ['Facebook',    v.facebook  ? '<a href="' + v.facebook  + '" target="_blank" rel="noopener">' + v.facebook  + '</a>' : ''],
+        ['Price Range', v.price],
+        ['Status',      statusLabel],
+        ['Type',        v.complimentary ? 'Complimentary / Gift' : 'Open Registration'],
+        ['Submitted',   v.submitted],
+        ['Description', v.description]
+    ];
+    var html = '<dl style="display:grid;grid-template-columns:140px 1fr;gap:10px 16px;font-size:14px">';
+    rows.forEach(function(r) {
+        if (!r[1]) return;
+        html += '<dt style="color:var(--text-muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding-top:2px">' + r[0] + '</dt>';
+        html += '<dd style="margin:0;line-height:1.6">' + r[1] + '</dd>';
+    });
+    html += '</dl>';
+    document.getElementById('modalBody').innerHTML = html;
+    var modal = document.getElementById('vendorModal');
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('vendorModal').style.display = 'none';
+}
+
+document.getElementById('vendorModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+});
+</script>
+</cfoutput>
+
+<cfinclude template="../../includes/layout-end.cfm">
